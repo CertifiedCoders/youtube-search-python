@@ -1,11 +1,30 @@
-# [youtube-search-python](https://github.com/alexmercerind/youtube-search-python)
+# youtube-search-python
 
-##### Search for YouTube videos, channels & playlists. Get video & playlist information using link. Get search suggestions. WITHOUT YouTube Data API v3.
+#### Search for YouTube videos, channels & playlists. Get video & playlist information using links. Get search suggestions — **without using the YouTube Data API v3.**
 
-## There are no active project maintainers since 23rd June 2022. Details: [Here](https://github.com/alexmercerind/youtube-search-python/issues/189)
+> ⚠️ The original project is no longer maintained as of **June 23, 2022**.  
+> See discussion: [Issue #189](https://github.com/alexmercerind/youtube-search-python/issues/189)
 
 [![PyPI - Version](https://img.shields.io/pypi/v/youtube-search-python?style=for-the-badge)](https://pypi.org/project/youtube-search-python)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/youtube-search-python?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/youtube-search-python)
+
+---
+
+## 🛠️ About This Fork
+
+This is an **actively maintained fork** of [youtube-search-python](https://github.com/alexmercerind/youtube-search-python) created by [CertifiedCoders](https://github.com/CertifiedCoders), maintained to restore compatibility with recent Python and HTTPX versions.
+
+### ✅ What’s changed
+- Removed deprecated `proxies=` argument from `httpx.AsyncClient` usage
+- Fully compatible with `httpx >= 0.28.0`
+
+This fork was created for long-term community use and modern compatibility. The original repository remains credited for all foundational work.
+
+**Credits:**  
+Original author: [Hitesh Kumar Saini](https://github.com/alexmercerind)  
+Maintainer of this fork: [CertifiedCoders](https://github.com/CertifiedCoders)
+
+---
 
 ## Installing
 

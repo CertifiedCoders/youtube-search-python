@@ -5,19 +5,19 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="youtube-search-python",
-    version="1.6.6",
-    author="Hitesh Kumar Saini",
+    version="1.6.6.post1",  # updated version to reflect httpx 0.28+ fix
+    author="CertifiedCoders (forked from Hitesh Kumar Saini)",
     license='MIT',
-    author_email="saini123hitesh@gmail.com",
-    description="Search for YouTube videos, channels & playlists & get video information using link WITHOUT YouTube Data API v3",
+    author_email="rajnishmishraaa1@gmail.com",
+    description="Search for YouTube content without YouTube Data API v3. Patched for httpx 0.28+.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/alexmercerind/youtube-search-python",
+    url="https://github.com/CertifiedCoders/youtube-search-python",  # updated repo URL
     packages=setuptools.find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'httpx>=0.14.2'
+        'httpx>=0.28.1'  # fixed compatibility issue
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
