@@ -29,7 +29,10 @@ class ComponentHandler:
             },
         }
         component['link'] = 'https://www.youtube.com/watch?v=' + component['id']
-        component['channel']['link'] = 'https://www.youtube.com/channel/' + component['channel']['id']
+
+        if component['channel']['id']:
+            component['channel']['link'] = 'https://www.youtube.com/channel/' + component['channel']['id']
+
         component['shelfTitle'] = shelfTitle
         return component
 
@@ -61,7 +64,10 @@ class ComponentHandler:
             'thumbnails':                     self._getValue(playlist, ['thumbnailRenderer', 'playlistVideoThumbnailRenderer', 'thumbnail', 'thumbnails']),
         }
         component['link'] = 'https://www.youtube.com/playlist?list=' + component['id']
-        component['channel']['link'] = 'https://www.youtube.com/channel/' + component['channel']['id']
+
+        if component['channel']['id']:
+            component['channel']['link'] = 'https://www.youtube.com/channel/' + component['channel']['id']
+
         return component
     
     def _getVideoFromChannelSearch(self, elements: list) -> list:
@@ -99,8 +105,6 @@ class ComponentHandler:
                 else:
                     raise Exception(f'Unexpected first_content {first_content}')
             elif 'continuationItemRenderer' in element:
-                # for endless scrolling, not needed here
-                # TODO: Implement endless scrolling
                 continue
             else:
                 raise Exception(f'Unexpected element {element}')
