@@ -31,7 +31,7 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 ## 📦 Installing (Forked & Maintained Version)
 
 ```bash
-pip install git+https://github.com/CertifiedCoders/youtube-search-python.git@v1.6.6.post2
+pip install git+https://github.com/CertifiedCoders/youtube-search-python
 ```
 ---
 
