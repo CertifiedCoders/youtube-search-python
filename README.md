@@ -18,7 +18,7 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 ### ✅ What’s Changed
 - 🧹 Removed deprecated `proxies=` usage from `httpx.AsyncClient`
 - ⚙️ Now fully compatible with `httpx >= 0.28.0`
-- 📝 Version bumped to `1.6.6.post1` with attribution and documentation added
+- 📝 Version bumped to `1.6.6.post2` with attribution and documentation added
 
 📌 The goal of this fork is to keep the project usable and maintained in modern Python environments while honoring and preserving the excellent original work.
 
@@ -31,7 +31,7 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 ## 📦 Installing (Forked & Maintained Version)
 
 ```bash
-pip install git+https://github.com/CertifiedCoders/youtube-search-python.git@v1.6.6.post1
+pip install git+https://github.com/CertifiedCoders/youtube-search-python.git@v1.6.6.post2
 ```
 ---
 

@@ -11,7 +11,7 @@ from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.utils import *
 
 __title__        = 'youtube-search-python'
-__version__      = '1.6.6.post1'  # updated for compatibility patch
+__version__      = '1.6.6.post2'  # updated for compatibility patch
 __author__       = 'alexmercerind'
 __license__      = 'MIT'
 
