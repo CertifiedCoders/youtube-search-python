@@ -16,9 +16,9 @@
 This is an **actively maintained fork** of [youtube-search-python](https://github.com/alexmercerind/youtube-search-python) by [CertifiedCoders](https://github.com/CertifiedCoders), with fixes for modern environments and continued community use.
 
 ### ✅ What’s Changed
-- 🧹 Removed deprecated `proxies=` usage from `httpx.AsyncClient`
+- 🧹 Removed deprecated `proxies=` usage from `httpx.AsyncClient` and `httpx (sync client)`
 - ⚙️ Now fully compatible with `httpx >= 0.28.0`
-- 📝 Version bumped to `1.6.6.post2` with attribution and documentation added
+- 📝 Version bumped to `1.6.6.post3` with attribution and documentation added
 
 📌 The goal of this fork is to keep the project usable and maintained in modern Python environments while honoring and preserving the excellent original work.
 
