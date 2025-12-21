@@ -11,5 +11,6 @@ dist
 
 test.py
 test2.py
+test_video_fix.py
 *.json
 *.html
