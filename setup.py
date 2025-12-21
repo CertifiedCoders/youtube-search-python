@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="youtube-search-python",
-    version="1.6.8",  # Bug fixes: Video ID extraction, Transcript handling, ChannelSearch parsing, Comments continuation, Suggestions JSON parsing, and async Playlist initialization
+    version="1.6.8",  # Bug fixes: Video ID extraction, Transcript handling, ChannelSearch parsing, Comments continuation, Suggestions JSON parsing, async Playlist initialization, ANDROID client default, stream URL improvements, URL cleaning, and updated client versions
     author="CertifiedCoders (forked from Hitesh Kumar Saini)",
     license='MIT',
     author_email="rajnishmishraaa1@gmail.com",

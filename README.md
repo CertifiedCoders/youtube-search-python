@@ -26,6 +26,10 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 - 🔎 **Fixed Suggestions** - Enhanced JSON parsing with multiple strategies to handle different response formats
 - ⚡ **Fixed Playlist (async)** - Added proper async initialization method for Playlist class
 - 🔧 **Fixed async Video methods** - Removed conflicting async methods from sync module to prevent coroutine errors
+- 📱 **Changed default client to ANDROID** - Video and VideoCore now use ANDROID client by default for better compatibility and direct URL access
+- 🔄 **Improved Stream URL Fetcher** - Enhanced age-restricted video handling with ANDROID client fallback, added serverAbrStreamingUrl support, and improved error handling
+- 🧹 **URL cleaning** - Added automatic URL cleaning to remove extra parameters and ensure proper video ID extraction
+- 🔢 **Updated client versions** - Bumped ANDROID client to 19.02.39 and MWEB client to 2.20240425.01.00 for better YouTube API compatibility
 
 #### Version 1.6.7
 - 🧹 Removed deprecated `proxies=` usage from `httpx.AsyncClient` and `httpx (sync client)`

@@ -259,7 +259,7 @@ class Video:
                     ]
                 }
         '''
-        video = VideoCore(videoLink, None, resultMode, timeout, get_upload_date)
+        video = VideoCore(videoLink, None, resultMode, timeout, get_upload_date, "ANDROID")
         if get_upload_date:
             await video.async_html_create()
         await video.async_create()
