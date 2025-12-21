@@ -15,10 +15,13 @@
 
 This is an **actively maintained fork** of [youtube-search-python](https://github.com/alexmercerind/youtube-search-python) by [CertifiedCoders](https://github.com/CertifiedCoders), with fixes for modern environments and continued community use.
 
-### ✅ What’s Changed
+### ✅ What's Changed
 - 🧹 Removed deprecated `proxies=` usage from `httpx.AsyncClient` and `httpx (sync client)`
 - ⚙️ Now fully compatible with `httpx >= 0.28.0`
-- 📝 Version bumped to `1.6.6.post3` with attribution and documentation added
+- ✨ Added async methods for `Video.get()`, `Video.getInfo()`, and `Video.getFormats()`
+- 🔧 Fixed YouTube API 400 errors by using WEB client and proper request format
+- 🛡️ Improved error handling with detailed error messages
+- 📝 Version bumped to `1.6.7` with all fixes and improvements
 
 📌 The goal of this fork is to keep the project usable and maintained in modern Python environments while honoring and preserving the excellent original work.
 
@@ -28,11 +31,36 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 
 ---
 
-## 📦 Installing (Forked & Maintained Version)
+## 📦 Installation
+
+### Quick Install (Recommended)
 
 ```bash
 pip install git+https://github.com/CertifiedCoders/youtube-search-python
 ```
+
+### Install from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/CertifiedCoders/youtube-search-python.git
+cd youtube-search-python
+
+# Install the package (dependencies will be installed automatically)
+pip install -e .
+```
+
+### Upgrade Existing Installation
+
+```bash
+pip install --upgrade git+https://github.com/CertifiedCoders/youtube-search-python
+```
+
+### Requirements
+
+- Python 3.7 or higher
+- httpx >= 0.28.1 (installed automatically)
+
 ---
 
 ## Sync
