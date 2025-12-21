@@ -88,7 +88,11 @@ class VideoCore(RequestCore):
         if response.status_code == 200:
             self.post_request_processing()
         else:
-            raise Exception('ERROR: Invalid status code.')
+            try:
+                error_msg = response.text[:200] if hasattr(response, 'text') and response.text else 'No response text available'
+            except:
+                error_msg = 'Could not read response text'
+            raise Exception(f'ERROR: Invalid status code {response.status_code}. Response: {error_msg}')
 
     def sync_create(self):
         self.prepare_innertube_request()
@@ -97,7 +101,11 @@ class VideoCore(RequestCore):
         if response.status_code == 200:
             self.post_request_processing()
         else:
-            raise Exception('ERROR: Invalid status code.')
+            try:
+                error_msg = response.text[:200] if hasattr(response, 'text') and response.text else 'No response text available'
+            except:
+                error_msg = 'Could not read response text'
+            raise Exception(f'ERROR: Invalid status code {response.status_code}. Response: {error_msg}')
 
     def prepare_html_request(self):
         self.url = 'https://www.youtube.com/youtubei/v1/player' + "?" + urlencode({
@@ -165,7 +173,8 @@ class VideoCore(RequestCore):
             }
             component['isLiveNow'] = component['isLiveContent'] and component['duration']['secondsText'] == "0"
             component['link'] = 'https://www.youtube.com/watch?v=' + component['id']
-            component['channel']['link'] = 'https://www.youtube.com/channel/' + component['channel']['id']
+            if component['channel']['id']:
+                component['channel']['link'] = 'https://www.youtube.com/channel/' + component['channel']['id']
             videoComponent.update(component)
         if mode in ['getFormats', None]:
             videoComponent.update(
