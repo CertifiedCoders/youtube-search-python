@@ -11,8 +11,8 @@ from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.utils import *
 
 __title__        = 'youtube-search-python'
-__version__      = '1.6.8'  # Bug fixes: Video ID extraction, Transcript handling, ChannelSearch parsing, Comments continuation, Suggestions JSON parsing, async Playlist initialization, ANDROID client default, stream URL improvements
-__author__       = 'alexmercerind'
+__version__      = '1.6.9'
+__author__       = 'CertifiedCoders'
 __license__      = 'MIT'
 
 ''' Deprecated. Present for legacy support. '''

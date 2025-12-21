@@ -18,10 +18,10 @@ Thankyou!
 
 ## Asynchronous
 
-For making use of Asynchronous version of this library, import from the ```__future__``` subpackage as follows.
+For making use of Asynchronous version of this library, import from the ```aio``` subpackage as follows.
 
 ```py
-from youtubesearchpython.__future__ import *
+from youtubesearchpython.aio import *
 ```
 
 It is non-blocking & substantially faster than sync youtube-search-python.
@@ -39,7 +39,7 @@ pip install youtube-search-python
 #### Search for only videos
 
 ```python
-from youtubesearchpython.__future__ import VideosSearch
+from youtubesearchpython.aio import VideosSearch
 
 videosSearch = VideosSearch('NoCopyrightSounds', limit = 2)
 videosResult = await videosSearch.next()
@@ -153,7 +153,7 @@ print(videosResult)
 #### Search for only channels
 
 ```python
-from youtubesearchpython.__future__ import ChannelsSearch
+from youtubesearchpython.aio import ChannelsSearch
 
 channelsSearch = ChannelsSearch('NoCopyrightSounds', limit = 10, region = 'US')
 channelsResult = await channelsSearch.next()
@@ -439,7 +439,7 @@ print(channelsResult)
 #### Search for only playlists
 
 ```python
-from youtubesearchpython.__future__ import PlaylistsSearch
+from youtubesearchpython.aio import PlaylistsSearch
 
 playlistsSearch = PlaylistsSearch('NoCopyrightSounds', limit = 1)
 playlistsResult = await playlistsSearch.next()
@@ -495,7 +495,7 @@ print(playlistsResult)
 #### Search with a filter or sort
 
 ```python
-from youtubesearchpython.__future__ import *
+from youtubesearchpython.aio import *
 
 customSearch = CustomSearch('NoCopyrightSounds', VideoSortOrder.uploadDate, limit = 1)
 customResult = await customSearch.next()
@@ -568,7 +568,7 @@ print(customResult)
 #### Search for everything
 
 ```python
-from youtubesearchpython.__future__ import Search
+from youtubesearchpython.aio import Search
 
 search = Search('NoCopyrightSounds', limit = 1)
 result = await search.next()
@@ -628,7 +628,7 @@ You may call ```next``` method as follows, to get the results on the next pages.
 Calling ```result``` method after calling ```next``` will give you result on that the next page.
 
 ```python
-from youtubesearchpython.__future__ import VideosSearch
+from youtubesearchpython.aio import VideosSearch
 
 search = VideosSearch('NoCopyrightSounds')
 result = await search.next()
@@ -876,7 +876,7 @@ print(videoFormats)
 #### Get all videos of a channel
 You can use a Playlist class for that, alongside some helpful functions.
 ```python
-from youtubesearchpython.__future__ import *
+from youtubesearchpython.aio import *
 
 channel_id = "UC_aEa8K-EOJ3D6gOs7HcyNg"
 playlist = Playlist(playlist_from_channel_id(channel_id))
@@ -958,7 +958,7 @@ Found all the videos.
 #### Getting search suggestions
 
 ```python
-from youtubesearchpython.__future__ import Suggestions
+from youtubesearchpython.aio import Suggestions
 
 suggestions = await Suggestions.get('NoCopyrightSounds', language = 'en', region = 'US')
 
@@ -994,7 +994,7 @@ print(suggestions)
 #### Getting videos by hashtag
 
 ```python
-from youtubesearchpython.__future__ import Hashtag
+from youtubesearchpython.aio import Hashtag
 
 hashtag = Hashtag('ncs', limit = 1)
 result = await hashtag.next()
@@ -1079,7 +1079,7 @@ For making use of this functionality, you must install [yt-dlp](https://github.c
 StreamURLFetcher makes slight improvements & changes to YouTube class from [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ```py
-from youtubesearchpython.__future__ import *
+from youtubesearchpython.aio import *
 fetcher = StreamURLFetcher()
 ''' It is recommended to call this method only once & avoid reinstantiating this class '''
 await fetcher.getJavaScript()
@@ -1104,7 +1104,7 @@ print(url)
 #### Get comments of a video
 You can use a Comments class for that.
 ```python
-from youtubesearchpython.__future__ import *
+from youtubesearchpython.aio import *
 
 # You can either pass an ID or a URL
 video_id = "_ZdsmLgCVdU"
@@ -1141,7 +1141,7 @@ Getting more comments...
 #### Get first 20 comments of a video
 You can use a Comments.get method for that.
 ```python
-from youtubesearchpython.__future__ import *
+from youtubesearchpython.aio import *
 
 # You can either pass an ID or a URL
 video_id = "_ZdsmLgCVdU"
@@ -1845,14 +1845,14 @@ print(comments)
 #### Retrieve video transcript
 YouTube auto-generates transcripts (subtitles) for videos. You can retrieve those transcripts using Transcript class:
 ```py
-from youtubesearchpython.__future__ import Transcript
+from youtubesearchpython.aio import Transcript
 
 print(await Transcript.get("https://www.youtube.com/watch?v=-1xu0IP35FI"))
 ```
 
 In response, you'll get available languages with `params` parameter. If you want to retrieve a different language, you have to pass the function that parameter. Example:
 ```py
-from youtubesearchpython.__future__ import Transcript
+from youtubesearchpython.aio import Transcript
 
 url = "https://www.youtube.com/watch?v=-1xu0IP35FI"
 
@@ -1935,7 +1935,7 @@ print(transcript_2)
 
 #### Retrieve channel info
 ```py
-from youtubesearchpython.__future__ import Channel
+from youtubesearchpython.aio import Channel
 
 print(await Channel.get("UC_aEa8K-EOJ3D6gOs7HcyNg"))
 ```
@@ -2037,7 +2037,7 @@ print(await Channel.get("UC_aEa8K-EOJ3D6gOs7HcyNg"))
 
 #### Retrieve channel playlists
 ```py
-from youtubesearchpython.__future__ import Channel
+from youtubesearchpython.aio import Channel
 
 channel = Channel("UC_aEa8K-EOJ3D6gOs7HcyNg")
 await channel.init()

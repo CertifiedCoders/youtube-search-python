@@ -17,26 +17,28 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 
 ### ✅ What's Changed
 
-#### Version 1.6.8 (Latest)
-- 🐛 **Fixed Video.get()** - Resolved TypeError when video ID is None by extracting ID from URL as fallback
-- 🔗 **Fixed getVideoId()** - Now properly handles query parameters in youtu.be URLs (e.g., `?si=...`)
-- 📝 **Fixed Transcript** - Added null check to prevent TypeError when transcripts are unavailable
-- 🔍 **Fixed ChannelSearch** - Updated parsing logic to handle new YouTube response structure (expandableTabRenderer/tabRenderer)
-- 💬 **Fixed Comments** - Improved continuation token retrieval with multiple fallback paths for YouTube API changes
-- 🔎 **Fixed Suggestions** - Enhanced JSON parsing with multiple strategies to handle different response formats
-- ⚡ **Fixed Playlist (async)** - Added proper async initialization method for Playlist class
-- 🔧 **Fixed async Video methods** - Removed conflicting async methods from sync module to prevent coroutine errors
-- 📱 **Changed default client to ANDROID** - Video and VideoCore now use ANDROID client by default for better compatibility and direct URL access
-- 🔄 **Improved Stream URL Fetcher** - Enhanced age-restricted video handling with ANDROID client fallback, added serverAbrStreamingUrl support, and improved error handling
-- 🧹 **URL cleaning** - Added automatic URL cleaning to remove extra parameters and ensure proper video ID extraction
-- 🔢 **Updated client versions** - Bumped ANDROID client to 19.02.39 and MWEB client to 2.20240425.01.00 for better YouTube API compatibility
+This maintained fork includes all improvements and fixes made since the original repository's last commit. Here's a summary of key changes:
+
+#### Version 1.6.9 (Latest)
+- 🔄 **Renamed async module** - Changed `__future__` to `aio` for shorter, cleaner imports (`from youtubesearchpython.aio import VideosSearch`)
+- 📱 **ANDROID client default** - Video classes now use ANDROID client by default for better compatibility and direct URL access
+- 🔄 **Stream URL improvements** - Enhanced age-restricted video handling with ANDROID fallback and serverAbrStreamingUrl support
+- 🧹 **URL cleaning** - Automatic URL parameter cleaning for proper video ID extraction
+- 🔢 **Updated client versions** - Bumped ANDROID to 19.02.39 and MWEB to 2.20240425.01.00
+
+#### Version 1.6.8
+- 🐛 **Bug fixes** - Fixed Video ID extraction, Transcript null handling, ChannelSearch parsing, Comments continuation, and Suggestions JSON parsing
+- ⚡ **Async improvements** - Fixed Playlist async initialization and removed conflicting async methods from sync module
+- 🔧 **Error handling** - Improved error messages and fallback mechanisms
 
 #### Version 1.6.7
-- 🧹 Removed deprecated `proxies=` usage from `httpx.AsyncClient` and `httpx (sync client)`
-- ⚙️ Now fully compatible with `httpx >= 0.28.0`
-- ✨ Added async methods for `Video.get()`, `Video.getInfo()`, and `Video.getFormats()`
-- 🔧 Fixed YouTube API 400 errors by using WEB client and proper request format
-- 🛡️ Improved error handling with detailed error messages
+- ⚙️ **httpx 0.28+ compatibility** - Removed deprecated `proxies` parameter usage, now fully compatible with httpx >= 0.28.0
+- ✨ **Async Video methods** - Added async methods for `Video.get()`, `Video.getInfo()`, and `Video.getFormats()`
+- 🔧 **API fixes** - Fixed YouTube API 400 errors with proper request format
+
+#### Initial Fork Changes (from original repo)
+- 🔧 **httpx compatibility** - Removed unsupported proxies parameter from AsyncClient for httpx 0.28+ compatibility
+- 📝 **Documentation updates** - Updated README and marked as actively maintained fork
 
 📌 The goal of this fork is to keep the project usable and maintained in modern Python environments while honoring and preserving the excellent original work.
 
@@ -48,10 +50,18 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 
 ## 📦 Installation
 
-### Quick Install (Recommended)
+### Install from Main Branch (Stable)
 
 ```bash
-pip install git+https://github.com/CertifiedCoders/youtube-search-python
+# Install from main branch (recommended for production)
+pip install git+https://github.com/CertifiedCoders/youtube-search-python.git
+```
+
+### Install from Dev Branch (Latest Features)
+
+```bash
+# Install from dev branch (latest changes and improvements)
+pip install git+https://github.com/CertifiedCoders/youtube-search-python.git@dev
 ```
 
 ### Install from Source
@@ -61,14 +71,22 @@ pip install git+https://github.com/CertifiedCoders/youtube-search-python
 git clone https://github.com/CertifiedCoders/youtube-search-python.git
 cd youtube-search-python
 
-# Install the package (dependencies will be installed automatically)
+# For main branch (default)
+pip install -e .
+
+# For dev branch
+git checkout dev
 pip install -e .
 ```
 
 ### Upgrade Existing Installation
 
 ```bash
-pip install --upgrade git+https://github.com/CertifiedCoders/youtube-search-python
+# Upgrade from main branch
+pip install --upgrade git+https://github.com/CertifiedCoders/youtube-search-python.git
+
+# Upgrade from dev branch
+pip install --upgrade git+https://github.com/CertifiedCoders/youtube-search-python.git@dev
 ```
 
 ### Requirements
@@ -199,14 +217,14 @@ print(videosSearch.result())
 #### Search for only videos
 
 ```python
-from youtubesearchpython.__future__ import VideosSearch
+from youtubesearchpython.aio import VideosSearch
 
 videosSearch = VideosSearch('NoCopyrightSounds', limit = 2)
 videosResult = await videosSearch.next()
 print(videosResult)
 ```
 
-Read more about usage & examples of newer asynchronous version of this library [HERE](https://github.com/alexmercerind/youtube-search-python/tree/main/youtubesearchpython/__future__).
+Read more about usage & examples of newer asynchronous version of this library [HERE](https://github.com/CertifiedCoders/youtube-search-python/tree/main/youtubesearchpython/aio).
 
 
 ## More Examples

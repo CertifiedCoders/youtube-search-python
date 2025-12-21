@@ -1,4 +1,4 @@
-from youtubesearchpython.__future__ import *
+from youtubesearchpython.aio import *
 import asyncio
 
 async def main():

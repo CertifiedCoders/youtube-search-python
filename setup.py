@@ -5,8 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="youtube-search-python",
-    version="1.6.8",  # Bug fixes: Video ID extraction, Transcript handling, ChannelSearch parsing, Comments continuation, Suggestions JSON parsing, async Playlist initialization, ANDROID client default, stream URL improvements, URL cleaning, and updated client versions
-    author="CertifiedCoders (forked from Hitesh Kumar Saini)",
+    version="1.6.9",
+    author="CertifiedCoders",
     license='MIT',
     author_email="rajnishmishraaa1@gmail.com",
     description="Search for YouTube content without YouTube Data API v3. Maintained fork with modern Python support.",
