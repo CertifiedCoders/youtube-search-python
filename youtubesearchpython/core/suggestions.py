@@ -89,9 +89,29 @@ class SuggestionsCore(RequestCore):
 
     def __parseSource(self) -> None:
         try:
-            self.responseSource = json.loads(self.response[self.response.index('(') + 1: self.response.index(')')])
-        except:
-            raise Exception('ERROR: Could not parse YouTube response.')
+            # Try to find JSON between parentheses
+            start_idx = self.response.find('(')
+            end_idx = self.response.rfind(')')
+            
+            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                json_str = self.response[start_idx + 1:end_idx]
+                self.responseSource = json.loads(json_str)
+            else:
+                # Try parsing the entire response as JSON
+                try:
+                    self.responseSource = json.loads(self.response)
+                except:
+                    # Try to extract JSON array directly
+                    # Look for array pattern like [["query1", ...], ["query2", ...]]
+                    import re
+                    # Find JSON array pattern
+                    match = re.search(r'\[\[.*?\]\]', self.response, re.DOTALL)
+                    if match:
+                        self.responseSource = json.loads(match.group())
+                    else:
+                        raise Exception('Could not find JSON in response')
+        except Exception as e:
+            raise Exception(f'ERROR: Could not parse YouTube response. {str(e)}')
 
     def __makeRequest(self) -> None:
         request = self.syncGetRequest()

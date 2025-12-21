@@ -48,8 +48,10 @@ class CommentsCore(RequestCore):
         ])
 
     def parse_continuation_source(self):
-        self.continuationKey = getValue(
-            self.response.json(),
+        response_json = self.response.json()
+        
+        # Try multiple paths to find continuation token
+        paths = [
             [
                 "contents",
                 "twoColumnWatchNextResults",
@@ -64,8 +66,57 @@ class CommentsCore(RequestCore):
                 "continuationEndpoint",
                 "continuationCommand",
                 "token",
-            ]
-        )
+            ],
+            # Alternative path 1
+            [
+                "contents",
+                "twoColumnWatchNextResults",
+                "results",
+                "results",
+                "contents",
+                -1,
+                "itemSectionRenderer",
+                "contents",
+                -1,
+                "continuationItemRenderer",
+                "continuationEndpoint",
+                "continuationCommand",
+                "token",
+            ],
+            # Alternative path 2 - check in onResponseReceivedEndpoints
+            [
+                "onResponseReceivedEndpoints",
+                0,
+                "reloadContinuationItemsCommand",
+                "continuationItems",
+                -1,
+                "continuationItemRenderer",
+                "continuationEndpoint",
+                "continuationCommand",
+                "token",
+            ],
+            # Alternative path 3
+            [
+                "onResponseReceivedEndpoints",
+                0,
+                "appendContinuationItemsAction",
+                "continuationItems",
+                -1,
+                "continuationItemRenderer",
+                "continuationEndpoint",
+                "continuationCommand",
+                "token",
+            ],
+        ]
+        
+        for path in paths:
+            continuation = getValue(response_json, path)
+            if continuation:
+                self.continuationKey = continuation
+                return
+        
+        # If no continuation found, set to None (not an error - video might not have comments)
+        self.continuationKey = None
 
     def sync_make_comment_request(self):
         self.prepare_comments_request()
@@ -78,10 +129,10 @@ class CommentsCore(RequestCore):
         self.response = self.syncPostRequest()
         if self.response.status_code == 200:
             self.parse_continuation_source()
-            if not self.continuationKey:
-                raise Exception("Could not retrieve continuation token")
+            # Don't raise error if continuation key is None - video might not have comments
+            # The comment request will handle empty results gracefully
         else:
-            raise Exception("Status code is not 200")
+            raise Exception(f"Status code is not 200: {self.response.status_code}")
 
     async def async_make_comment_request(self):
         self.prepare_comments_request()
@@ -94,15 +145,20 @@ class CommentsCore(RequestCore):
         self.response = await self.asyncPostRequest()
         if self.response.status_code == 200:
             self.parse_continuation_source()
-            if not self.continuationKey:
-                raise Exception("Could not retrieve continuation token")
+            # Don't raise error if continuation key is None - video might not have comments
+            # The comment request will handle empty results gracefully
         else:
-            raise Exception("Status code is not 200")
+            raise Exception(f"Status code is not 200: {self.response.status_code}")
 
     def sync_create(self):
         self.sync_make_continuation_request()
-        self.sync_make_comment_request()
-        self.__getComponents()
+        # Only make comment request if we have a continuation key
+        if self.continuationKey:
+            self.sync_make_comment_request()
+            self.__getComponents()
+        else:
+            # No comments available - set empty result
+            self.commentsComponent = {"result": []}
 
     def sync_create_next(self):
         self.isNextRequest = True
@@ -111,8 +167,13 @@ class CommentsCore(RequestCore):
 
     async def async_create(self):
         await self.async_make_continuation_request()
-        await self.async_make_comment_request()
-        self.__getComponents()
+        # Only make comment request if we have a continuation key
+        if self.continuationKey:
+            await self.async_make_comment_request()
+            self.__getComponents()
+        else:
+            # No comments available - set empty result
+            self.commentsComponent = {"result": []}
 
     async def async_create_next(self):
         self.isNextRequest = True

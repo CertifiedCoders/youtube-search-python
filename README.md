@@ -16,12 +16,23 @@
 This is an **actively maintained fork** of [youtube-search-python](https://github.com/alexmercerind/youtube-search-python) by [CertifiedCoders](https://github.com/CertifiedCoders), with fixes for modern environments and continued community use.
 
 ### ✅ What's Changed
+
+#### Version 1.6.8 (Latest)
+- 🐛 **Fixed Video.get()** - Resolved TypeError when video ID is None by extracting ID from URL as fallback
+- 🔗 **Fixed getVideoId()** - Now properly handles query parameters in youtu.be URLs (e.g., `?si=...`)
+- 📝 **Fixed Transcript** - Added null check to prevent TypeError when transcripts are unavailable
+- 🔍 **Fixed ChannelSearch** - Updated parsing logic to handle new YouTube response structure (expandableTabRenderer/tabRenderer)
+- 💬 **Fixed Comments** - Improved continuation token retrieval with multiple fallback paths for YouTube API changes
+- 🔎 **Fixed Suggestions** - Enhanced JSON parsing with multiple strategies to handle different response formats
+- ⚡ **Fixed Playlist (async)** - Added proper async initialization method for Playlist class
+- 🔧 **Fixed async Video methods** - Removed conflicting async methods from sync module to prevent coroutine errors
+
+#### Version 1.6.7
 - 🧹 Removed deprecated `proxies=` usage from `httpx.AsyncClient` and `httpx (sync client)`
 - ⚙️ Now fully compatible with `httpx >= 0.28.0`
 - ✨ Added async methods for `Video.get()`, `Video.getInfo()`, and `Video.getFormats()`
 - 🔧 Fixed YouTube API 400 errors by using WEB client and proper request format
 - 🛡️ Improved error handling with detailed error messages
-- 📝 Version bumped to `1.6.7` with all fixes and improvements
 
 📌 The goal of this fork is to keep the project usable and maintained in modern Python environments while honoring and preserving the excellent original work.
 

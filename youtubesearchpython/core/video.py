@@ -220,7 +220,11 @@ class VideoCore(RequestCore):
                 'category': getValue(responseSource, ['microformat', 'playerMicroformatRenderer', 'category']),
             }
             component['isLiveNow'] = component['isLiveContent'] and component['duration']['secondsText'] == "0"
-            component['link'] = 'https://www.youtube.com/watch?v=' + component['id']
+            # Use video ID from URL if not found in response
+            if not component['id']:
+                component['id'] = getVideoId(self.videoLink)
+            if component['id']:
+                component['link'] = 'https://www.youtube.com/watch?v=' + component['id']
             if component['channel']['id']:
                 component['channel']['link'] = 'https://www.youtube.com/channel/' + component['channel']['id']
             videoComponent.update(component)

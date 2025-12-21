@@ -64,6 +64,10 @@ class TranscriptCore(RequestCore):
         transcripts = getValue(response, ["actions", 0, "updateEngagementPanelAction", "content", "transcriptRenderer", "content", "transcriptSearchPanelRenderer", "body", "transcriptSegmentListRenderer", "initialSegments"])
         segments = []
         languages = []
+        if not transcripts:
+            # No transcripts available
+            self.result = {"segments": segments, "languages": languages}
+            return
         for segment in transcripts:
             segment = getValue(segment, ["transcriptSegmentRenderer"])
             j = {

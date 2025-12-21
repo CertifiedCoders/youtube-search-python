@@ -32,21 +32,55 @@ class ChannelSearchCore(RequestCore, ComponentHandler):
         await self._asyncRequest()
         self._parseChannelSearchSource()
         self.response = self._getChannelSearchComponent(self.response)
-        return self.response
+        return {'result': self.response}
 
     def _parseChannelSearchSource(self) -> None:
         try:
-            last_tab = self.response["contents"]["twoColumnBrowseResultsRenderer"]["tabs"][-1]
+            # Try to get tabs from response
+            tabs = self.response.get("contents", {}).get("twoColumnBrowseResultsRenderer", {}).get("tabs", [])
+            if not tabs:
+                # Try alternative structure
+                tabs = self.response.get("contents", {}).get("singleColumnBrowseResultsRenderer", {}).get("tabs", [])
+            
+            if not tabs:
+                self.response = []
+                return
+            
+            # Get the last tab (usually the search results tab)
+            last_tab = tabs[-1]
+            
+            # Try expandableTabRenderer first
             if 'expandableTabRenderer' in last_tab:
-                self.response = last_tab["expandableTabRenderer"]["content"]["sectionListRenderer"]["contents"]
-            else:
+                expandable = last_tab["expandableTabRenderer"]
+                # Check if content exists
+                if 'content' in expandable:
+                    content = expandable["content"]
+                    if 'sectionListRenderer' in content:
+                        self.response = content["sectionListRenderer"].get("contents", [])
+                    else:
+                        self.response = []
+                else:
+                    # Try to get from expandableTabRenderer directly
+                    if 'sectionListRenderer' in expandable:
+                        self.response = expandable["sectionListRenderer"].get("contents", [])
+                    else:
+                        self.response = []
+            # Try tabRenderer
+            elif 'tabRenderer' in last_tab:
                 tab_renderer = last_tab["tabRenderer"]
                 if 'content' in tab_renderer:
-                    self.response = tab_renderer["content"]["sectionListRenderer"]["contents"]
+                    content = tab_renderer["content"]
+                    if 'sectionListRenderer' in content:
+                        self.response = content["sectionListRenderer"].get("contents", [])
+                    else:
+                        self.response = []
                 else:
                     self.response = []
-        except:
-            raise Exception('ERROR: Could not parse YouTube response.')
+            else:
+                self.response = []
+        except Exception as e:
+            # More detailed error for debugging
+            raise Exception(f'ERROR: Could not parse YouTube response. {str(e)}')
 
     def _getRequestBody(self):
         ''' Fixes #47 '''

@@ -14,3 +14,11 @@ test2.py
 test_video_fix.py
 *.json
 *.html
+
+# Local test files (not uploaded to GitHub)
+tests/sync/test_all.py
+tests/async/test_all.py
+tests/sync/test_results.txt
+tests/async/test_results.txt
+tests/sync/function_results.json
+tests/async/function_results.json

@@ -610,21 +610,28 @@ class Playlist:
     def __init__(self, playlistLink: str):
         self.playlistLink = playlistLink
 
+    async def init(self) -> None:
+        '''Initializes the playlist by fetching the first batch of videos.'''
+        if not self.info:
+            self.__playlist = PlaylistCore(self.playlistLink, None, ResultMode.dict, 2)
+            await self.__playlist.async_create()
+            self.info = copy.deepcopy(self.__playlist.result)
+            self.videos = self.__playlist.result['videos']
+            self.hasMoreVideos = self.__playlist.continuationKey != None
+            if self.info:
+                self.info.pop('videos', None)
+
     '''Fetches more susequent videos of the playlist, and appends to the `videos` list.
     `hasMoreVideos` bool indicates whether more videos can be fetched or not.
     '''
 
     async def getNextVideos(self) -> None:
         if not self.info:
-            self.__playlist = PlaylistCore(self.playlistLink, None, ResultMode.dict, 2)
-            await self.__playlist._async_next()
-            self.info = copy.deepcopy(self.__playlist.playlistComponent)
-            self.videos = self.__playlist.playlistComponent['videos']
-            self.hasMoreVideos = self.__playlist.continuationKey != None
-            self.info.pop('videos')
+            # Initialize if not already done
+            await self.init()
         else:
             await self.__playlist._async_next()
-            self.videos = self.__playlist.playlistComponent['videos']
+            self.videos = self.__playlist.result['videos']
             self.hasMoreVideos = self.__playlist.continuationKey != None
 
     @staticmethod
@@ -1856,6 +1863,14 @@ class Comments:
     def __init__(self, playlistLink: str, timeout: int = None):
         self.timeout = timeout
         self.playlistLink = playlistLink
+
+    async def init(self) -> None:
+        """Initialize comments by fetching the first batch."""
+        if self.__comments is None:
+            self.__comments = CommentsCore(self.playlistLink)
+            await self.__comments.async_create()
+            self.comments = self.__comments.commentsComponent
+            self.hasMoreComments = self.__comments.continuationKey is not None
 
     async def getNextComments(self) -> None:
         if self.__comments is None:
