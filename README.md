@@ -39,17 +39,14 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 pip install git+https://github.com/CertifiedCoders/youtube-search-python
 ```
 
-### Install from Requirements
+### Install from Source
 
 ```bash
 # Clone the repository
 git clone https://github.com/CertifiedCoders/youtube-search-python.git
 cd youtube-search-python
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Install the package
+# Install the package (dependencies will be installed automatically)
 pip install -e .
 ```
 
@@ -62,7 +59,7 @@ pip install --upgrade git+https://github.com/CertifiedCoders/youtube-search-pyth
 ### Requirements
 
 - Python 3.7 or higher
-- httpx >= 0.28.1
+- httpx >= 0.28.1 (installed automatically)
 
 ---
 
