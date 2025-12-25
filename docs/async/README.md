@@ -1,12 +1,34 @@
-# Asynchronous API Documentation
+# ⚡ Asynchronous API Documentation
 
-This document covers the asynchronous API for `youtube-search-python`. For installation, project overview, and general information, see the [main README](../../README.md).
+Complete guide to the asynchronous API for `youtube-search-python`. For installation, project overview, and general information, see the [main README](../../README.md).
 
-## Overview
+---
 
-The async API provides non-blocking, high-performance access to YouTube search and data retrieval. All async methods must be called with `await` and should be used within async functions.
+## 📋 Table of Contents
 
-## Import
+- [Overview](#overview)
+- [Import](#import)
+- [Basic Usage](#basic-usage)
+- [Advanced Usage](#advanced-usage)
+- [Timeout Configuration](#timeout-configuration)
+- [Key Differences from Sync API](#key-differences-from-sync-api)
+- [Examples](#examples)
+
+---
+
+## 🎯 Overview
+
+The async API provides **non-blocking, high-performance** access to YouTube search and data retrieval. All async methods must be called with `await` and should be used within async functions.
+
+**Best for:**
+- Web servers and APIs
+- High-performance applications
+- Concurrent operations
+- Background tasks
+
+---
+
+## 📥 Import
 
 ```python
 from youtubesearchpython.aio import VideosSearch, ChannelsSearch, PlaylistsSearch, Search, CustomSearch, ChannelSearch
@@ -14,101 +36,109 @@ from youtubesearchpython.aio import Video, Playlist, Channel, Comments, Transcri
 from youtubesearchpython.aio import StreamURLFetcher, playlist_from_channel_id
 ```
 
-## Basic Usage
+---
 
-### Search for videos
+## 🚀 Basic Usage
+
+### Search for Videos
 
 ```python
 from youtubesearchpython.aio import VideosSearch
+import asyncio
 
 async def main():
     videosSearch = VideosSearch('NoCopyrightSounds', limit=2)
     result = await videosSearch.next()
     print(result)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Search for channels
+### Search for Channels
 
 ```python
 from youtubesearchpython.aio import ChannelsSearch
+import asyncio
 
 async def main():
     channelsSearch = ChannelsSearch('NoCopyrightSounds', limit=10, region='US')
     result = await channelsSearch.next()
     print(result)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Search for playlists
+### Search for Playlists
 
 ```python
 from youtubesearchpython.aio import PlaylistsSearch
+import asyncio
 
 async def main():
     playlistsSearch = PlaylistsSearch('NoCopyrightSounds', limit=1)
     result = await playlistsSearch.next()
     print(result)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Search with filters
+### Search with Filters
 
 ```python
 from youtubesearchpython.aio import CustomSearch, VideoSortOrder
+import asyncio
 
 async def main():
     customSearch = CustomSearch('NoCopyrightSounds', VideoSortOrder.uploadDate, limit=1)
     result = await customSearch.next()
     print(result)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Search for everything
+### Search for Everything
 
 ```python
 from youtubesearchpython.aio import Search
+import asyncio
 
 async def main():
     search = Search('NoCopyrightSounds', limit=1)
     result = await search.next()
     print(result)
 
-import asyncio
 asyncio.run(main())
 ```
 
-## Advanced Usage
+> **💡 Tip:** The `type` key in the result can be used to differentiate between videos, channels, and playlists.
 
-### Getting next page results
+---
+
+## 🎓 Advanced Usage
+
+### Getting Next Page Results
 
 ```python
 from youtubesearchpython.aio import VideosSearch
+import asyncio
 
 async def main():
     search = VideosSearch('NoCopyrightSounds')
+    
     result = await search.next()
     print(result['result'])
     
     result = await search.next()
     print(result['result'])
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Getting video information
+### Getting Video Information
 
 ```python
 from youtubesearchpython.aio import Video
+import asyncio
 
 async def main():
     video = await Video.get('https://www.youtube.com/watch?v=z0GKGpObgPY')
@@ -120,14 +150,21 @@ async def main():
     videoFormats = await Video.getFormats('z0GKGpObgPY')
     print(videoFormats)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Working with playlists
+> **💡 Note:** 
+> - `Video.get()` returns both information and formats
+> - `Video.getInfo()` returns only information
+> - `Video.getFormats()` returns only formats
+> - You can pass either a link or video ID
+> - Use `get_upload_date=True` to enable HTML parsing for upload date (slower but more complete)
+
+### Working with Playlists
 
 ```python
 from youtubesearchpython.aio import Playlist
+import asyncio
 
 async def main():
     playlist = Playlist('https://www.youtube.com/playlist?list=PLRBp0Fe2GpgmsW46rJyudVFlY6IYjFBIK')
@@ -142,14 +179,33 @@ async def main():
     
     print('Found all the videos.')
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Get all videos of a channel
+#### Alternative: Using Static Methods
+
+```python
+from youtubesearchpython.aio import Playlist
+import asyncio
+
+async def main():
+    playlist = await Playlist.get('https://www.youtube.com/playlist?list=PLRBp0Fe2GpgmsW46rJyudVFlY6IYjFBIK')
+    print(playlist)
+    
+    playlistInfo = await Playlist.getInfo('https://www.youtube.com/playlist?list=PLRBp0Fe2GpgmsW46rJyudVFlY6IYjFBIK')
+    print(playlistInfo)
+    
+    playlistVideos = await Playlist.getVideos('https://www.youtube.com/playlist?list=PLRBp0Fe2GpgmsW46rJyudVFlY6IYjFBIK')
+    print(playlistVideos)
+
+asyncio.run(main())
+```
+
+### Get All Videos of a Channel
 
 ```python
 from youtubesearchpython.aio import Playlist, playlist_from_channel_id
+import asyncio
 
 async def main():
     channel_id = "UC_aEa8K-EOJ3D6gOs7HcyNg"
@@ -165,43 +221,43 @@ async def main():
     
     print('Found all the videos.')
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Getting search suggestions
+### Getting Search Suggestions
 
 ```python
 from youtubesearchpython.aio import Suggestions
+import asyncio
 
 async def main():
     suggestions = await Suggestions.get('NoCopyrightSounds', language='en', region='US')
     print(suggestions)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Getting videos by hashtag
+### Getting Videos by Hashtag
 
 ```python
 from youtubesearchpython.aio import Hashtag
+import asyncio
 
 async def main():
     hashtag = Hashtag('ncs', limit=1)
     result = await hashtag.next()
     print(result)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Getting direct stream URLs
+### Getting Direct Stream URLs
 
-Requires `yt-dlp` to be installed: `pip install yt-dlp`
+> **⚠️ Requires:** `yt-dlp` to be installed (`pip install yt-dlp`)
 
 ```python
 from youtubesearchpython.aio import StreamURLFetcher, Video
+import asyncio
 
 async def main():
     fetcher = StreamURLFetcher()
@@ -214,14 +270,20 @@ async def main():
     all_urls = await fetcher.getAll(video)
     print(all_urls)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Getting comments
+> **💡 Note:** 
+> - `StreamURLFetcher` can fetch direct video URLs without additional network requests
+> - Avoid instantiating `StreamURLFetcher` more than once (create a global instance)
+> - `get()` returns a URL for a specific format
+> - `getAll()` returns all stream URLs in a dictionary
+
+### Getting Comments
 
 ```python
 from youtubesearchpython.aio import Comments
+import asyncio
 
 async def main():
     video_id = "_ZdsmLgCVdU"
@@ -237,30 +299,30 @@ async def main():
     
     print('Found all the comments.')
 
-import asyncio
 asyncio.run(main())
 ```
 
-**Note:** `getNextComments()` can also be called without `init()` - it will initialize automatically on first call.
+> **💡 Note:** `getNextComments()` can also be called without `init()` — it will initialize automatically on first call.
 
-### Get first 20 comments
+#### Get First 20 Comments (Quick Access)
 
 ```python
 from youtubesearchpython.aio import Comments
+import asyncio
 
 async def main():
     video_id = "_ZdsmLgCVdU"
     comments = await Comments.get(video_id)
     print(comments)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Retrieve video transcript
+### Retrieve Video Transcript
 
 ```python
 from youtubesearchpython.aio import Transcript
+import asyncio
 
 async def main():
     transcript = await Transcript.get("https://www.youtube.com/watch?v=-1xu0IP35FI")
@@ -272,27 +334,27 @@ async def main():
     )
     print(transcript_es)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Retrieve channel info
+### Retrieve Channel Info
 
 ```python
 from youtubesearchpython.aio import Channel
+import asyncio
 
 async def main():
     channel = await Channel.get("UC_aEa8K-EOJ3D6gOs7HcyNg")
     print(channel)
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Retrieve channel playlists
+### Retrieve Channel Playlists
 
 ```python
 from youtubesearchpython.aio import Channel
+import asyncio
 
 async def main():
     channel = Channel("UC_aEa8K-EOJ3D6gOs7HcyNg")
@@ -303,42 +365,56 @@ async def main():
         await channel.next()
         print(len(channel.result["playlists"]))
 
-import asyncio
 asyncio.run(main())
 ```
 
-### Channel search
+### Channel Search
 
 ```python
 from youtubesearchpython.aio import ChannelSearch
+import asyncio
 
 async def main():
     search = ChannelSearch('Watermelon Sugar', "UCZFWPqqPkFlNwIxcpsLOwew")
     result = await search.next()
     print(result)
 
-import asyncio
 asyncio.run(main())
 ```
 
-## Timeout
+---
 
-The default timeout is 10 seconds. You can override it by passing a `timeout` parameter (in seconds) to class constructors:
+## ⏱️ Timeout Configuration
+
+The default timeout is **10 seconds**. You can override it by passing a `timeout` parameter (in seconds) to class constructors:
 
 ```python
 videosSearch = VideosSearch('query', limit=10, timeout=30)
 ```
 
-## Key Differences from Sync API
+---
 
-- Use `await search.next()` instead of `search.result()` to get results
-- `next()` returns the result dictionary directly (not a boolean)
-- All async methods must be called with `await`
-- Use `await playlist.init()` or `await channel.init()` for initialization
-- Use `await comments.init()` before accessing comments (or call `getNextComments()` which initializes automatically)
+## 🔄 Key Differences from Sync API
 
-## See Also
+| Feature | Sync API | Async API |
+|---------|----------|-----------|
+| **Getting results** | `search.result()` | `await search.next()` |
+| **Return value** | Dictionary | Dictionary (direct) |
+| **Initialization** | Automatic | `await playlist.init()` or `await channel.init()` |
+| **Comments init** | Automatic | `await comments.init()` or auto-init on first `getNextComments()` |
+| **All methods** | Synchronous | Must use `await` |
 
-- [Main README](../../README.md) - Installation, sync API examples, and project information
-- [Synchronous API Documentation](../sync/README.md) - Complete guide to the synchronous API
+---
 
+## 💻 Examples
+
+For comprehensive examples covering all features, see:
+
+- **[Async Examples](../examples/asyncExample.py)** — Complete async examples file
+
+---
+
+## 🔗 See Also
+
+- **[Main README](../../README.md)** — Installation, sync API examples, and project information
+- **[Synchronous API Documentation](../sync/README.md)** — Complete guide to the synchronous API

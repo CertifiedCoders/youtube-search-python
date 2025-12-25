@@ -1,29 +1,29 @@
-# youtube-search-python
+# 🔎 youtube-search-python
 
-#### 🔎 Search YouTube videos, channels, and playlists — without using the YouTube Data API v3.
-
-**Version:** 1.6.10 | **Python:** 3.7–3.13 | **Maintainer:** [CertifiedCoders](https://github.com/CertifiedCoders)
+**Search YouTube videos, channels, and playlists — without using the YouTube Data API v3.**
 
 [![PyPI - Version](https://img.shields.io/pypi/v/youtube-search-python?style=for-the-badge)](https://pypi.org/project/youtube-search-python)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/youtube-search-python?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/youtube-search-python)
-[![Install via GitHub](https://img.shields.io/badge/install-gitHub-blue?style=for-the-badge&logo=github)](https://github.com/CertifiedCoders/youtube-search-python)
+[![Python](https://img.shields.io/pypi/pyversions/youtube-search-python?style=for-the-badge)](https://www.python.org/downloads/)
 
-> ⚠️ **Note:** The original project by [Hitesh Kumar Saini](https://github.com/alexmercerind) has not been maintained since **June 23, 2022**.  
-> This is an **actively maintained fork** by [CertifiedCoders](https://github.com/CertifiedCoders) with modern Python support and continued updates.
+> **⚠️ Note:** The original project by [Hitesh Kumar Saini](https://github.com/alexmercerind) has not been maintained since **June 23, 2022**.  
+> This is an **actively maintained fork** by [CertifiedCoders](https://github.com/CertifiedCoders) with modern Python support (3.7–3.13) and continued updates.
 
 ---
 
 ## ✨ Features
 
-- 🔍 **Search** - Videos, channels, playlists, and custom searches with filters
-- 📹 **Video Information** - Get video details, formats, thumbnails, and metadata
-- 📝 **Comments** - Retrieve video comments with pagination support
-- 📄 **Transcripts** - Access video transcripts in multiple languages
-- 🎬 **Playlists** - Full playlist support with pagination
-- 📺 **Channels** - Channel information and playlist retrieval
-- 🔗 **Stream URLs** - Direct stream URL fetching (requires yt-dlp)
-- ⚡ **Async Support** - High-performance asynchronous API
-- 🎯 **No API Key Required** - Works without YouTube Data API v3
+| Feature | Description |
+|---------|-------------|
+| 🔍 **Search** | Videos, channels, playlists, and custom searches with filters |
+| 📹 **Video Information** | Get video details, formats, thumbnails, and metadata |
+| 📝 **Comments** | Retrieve video comments with pagination support |
+| 📄 **Transcripts** | Access video transcripts in multiple languages |
+| 🎬 **Playlists** | Full playlist support with pagination |
+| 📺 **Channels** | Channel information and playlist retrieval |
+| 🔗 **Stream URLs** | Direct stream URL fetching (requires yt-dlp) |
+| ⚡ **Async Support** | High-performance asynchronous API |
+| 🎯 **No API Key** | Works without YouTube Data API v3 |
 
 ---
 
@@ -51,10 +51,10 @@ pip install -e .
 
 ### Requirements
 
-- Python 3.7–3.13
-- httpx >= 0.28.1 (installed automatically)
+- **Python:** 3.7–3.13
+- **httpx:** >= 0.28.1 (installed automatically)
 
-**Note:** Default timeout is 10 seconds. Override by passing `timeout` parameter (in seconds) to class constructors.
+> **💡 Tip:** Default timeout is 10 seconds. Override by passing `timeout` parameter (in seconds) to class constructors.
 
 ---
 
@@ -87,14 +87,121 @@ asyncio.run(main())
 
 ## 📚 Documentation
 
-- **[Synchronous API](docs/sync/README.md)** - Complete guide to the synchronous API
-- **[Asynchronous API](docs/async/README.md)** - Complete guide to the asynchronous API
-- **[Examples](syncExample.py)** - Synchronous examples
-- **[Async Examples](asyncExample.py)** - Asynchronous examples
+| Document | Description |
+|----------|-------------|
+| **[📘 Synchronous API](docs/sync/README.md)** | Complete guide to the synchronous API with examples |
+| **[⚡ Asynchronous API](docs/async/README.md)** | Complete guide to the asynchronous API with examples |
+| **[💻 Sync Examples](docs/examples/syncExample.py)** | Comprehensive synchronous examples |
+| **[💻 Async Examples](docs/examples/asyncExample.py)** | Comprehensive asynchronous examples |
 
 ---
 
-## Contributors
+## 🎯 Choose Your Path
+
+### For Beginners
+
+Start with the **[Synchronous API](docs/sync/README.md)** — it's straightforward and blocking, perfect for simple scripts and learning.
+
+### For Advanced Users
+
+Use the **[Asynchronous API](docs/async/README.md)** for high-performance applications, web servers, and concurrent operations.
+
+---
+
+## 📖 Common Use Cases
+
+<details>
+<summary><b>🔍 Search for Videos</b></summary>
+
+**Sync:**
+```python
+from youtubesearchpython import VideosSearch
+
+videosSearch = VideosSearch('NoCopyrightSounds', limit=10)
+print(videosSearch.result())
+```
+
+**Async:**
+```python
+from youtubesearchpython.aio import VideosSearch
+import asyncio
+
+async def main():
+    videosSearch = VideosSearch('NoCopyrightSounds', limit=10)
+    result = await videosSearch.next()
+    print(result)
+
+asyncio.run(main())
+```
+</details>
+
+<details>
+<summary><b>📹 Get Video Information</b></summary>
+
+**Sync:**
+```python
+from youtubesearchpython import Video
+
+video = Video.get('https://www.youtube.com/watch?v=z0GKGpObgPY')
+print(video)
+```
+
+**Async:**
+```python
+from youtubesearchpython.aio import Video
+import asyncio
+
+async def main():
+    video = await Video.get('https://www.youtube.com/watch?v=z0GKGpObgPY')
+    print(video)
+
+asyncio.run(main())
+```
+</details>
+
+<details>
+<summary><b>🎬 Work with Playlists</b></summary>
+
+**Sync:**
+```python
+from youtubesearchpython import Playlist
+
+playlist = Playlist('https://www.youtube.com/playlist?list=PLRBp0Fe2GpgmsW46rJyudVFlY6IYjFBIK')
+print(f'Videos Retrieved: {len(playlist.videos)}')
+
+while playlist.hasMoreVideos:
+    playlist.getNextVideos()
+    print(f'Videos Retrieved: {len(playlist.videos)}')
+```
+
+**Async:**
+```python
+from youtubesearchpython.aio import Playlist
+import asyncio
+
+async def main():
+    playlist = Playlist('https://www.youtube.com/playlist?list=PLRBp0Fe2GpgmsW46rJyudVFlY6IYjFBIK')
+    await playlist.init()
+    
+    while playlist.hasMoreVideos:
+        await playlist.getNextVideos()
+        print(f'Videos Retrieved: {len(playlist.videos)}')
+
+asyncio.run(main())
+```
+</details>
+
+---
+
+## ⚠️ Important Notes
+
+> **Legal Notice:** YouTube's Terms of Service may restrict commercial use. Please respect the law and YouTube's terms when using this library.
+
+> **Technical Details:** This library simulates the requests made by YouTube's web client during client-side rendering. It fetches the JSON data internally used by YouTube when navigating the website, not webpage HTML.
+
+---
+
+## 🤝 Contributors
 
 Thanks to everyone contributing to this library, including those not mentioned here.
 
@@ -104,36 +211,21 @@ Thanks to everyone contributing to this library, including those not mentioned h
 
 ### Original Project Contributors
 
-- **[Hitesh Kumar Saini](https://github.com/alexmercerind)** - Original creator of this library, contributed most classes to this library
-- **[mytja](https://github.com/mytja)** - Author of Core classes, Comments and Transcript classes, yt-dlp migration
-- **[Denis (raitonoberu)](https://github.com/raitonoberu)** - Author of Hashtag class, maintainer and reviewer of PRs
-- **[Fabian Wunsch (fabi321)](https://github.com/fabi321)** - Fixes to ChannelSearch & retrieving Playlists from Channel class
-- **[Felix Stupp (Zocker1999NET)](https://github.com/Zocker1999NET)** - Video and Playlist class contributor, extensive issues
+- **[Hitesh Kumar Saini](https://github.com/alexmercerind)** - Original creator
+- **[mytja](https://github.com/mytja)** - Core classes, Comments and Transcript classes, yt-dlp migration
+- **[Denis (raitonoberu)](https://github.com/raitonoberu)** - Hashtag class, maintainer and reviewer
+- **[Fabian Wunsch (fabi321)](https://github.com/fabi321)** - ChannelSearch & Playlist fixes
+- **[Felix Stupp (Zocker1999NET)](https://github.com/Zocker1999NET)** - Video and Playlist class contributor
 - **[dscrofts](https://github.com/dscrofts)** - Extensive issues, mostly about Playlist and Video class
 - **[AlexandreOuellet](https://github.com/AlexandreOuellet)** - Added publishDate and uploadDate to Video class
 - **[rking32](https://github.com/rking32)** - Bumped httpx version to 0.14.2
 - **[Elter (Maple-Elter)](https://github.com/Maple-Elter)** - Fixes to Playlist class
 
-Contributors are listed in no particular order. We appreciate all contributions, reports, and feedback that help make this library better.
+Contributors are listed in no particular order. We appreciate all contributions, reports, and feedback.
 
 ---
 
-## License
-
-MIT License
-
-Copyright (c) 2021 [Hitesh Kumar Saini](https://github.com/alexmercerind)  
-Copyright (c) 2022-2024 [CertifiedCoders](https://github.com/CertifiedCoders) (Fork maintainer)
-
----
-
-## ℹ️ About
-
-This library simulates the requests made by YouTube's web client during client-side rendering. It fetches the JSON data internally used by YouTube when navigating the website, not webpage HTML.
-
-**Important:** YouTube's Terms of Service may restrict commercial use. Please respect the law and YouTube's terms.
-
-### Recent Updates
+## 📝 Recent Updates
 
 **Version 1.6.10** includes:
 - Renamed async module from `__future__` to `aio` for cleaner imports
@@ -144,7 +236,18 @@ This library simulates the requests made by YouTube's web client during client-s
 
 For full changelog, see the [repository commits](https://github.com/CertifiedCoders/youtube-search-python/commits/dev).
 
-### Credits
+---
 
-- **Original Author:** [Hitesh Kumar Saini](https://github.com/alexmercerind)
-- **Fork Maintainer:** [CertifiedCoders](https://github.com/CertifiedCoders)
+## 📄 License
+
+MIT License
+
+Copyright (c) 2021 [Hitesh Kumar Saini](https://github.com/alexmercerind)  
+Copyright (c) 2022-2024 [CertifiedCoders](https://github.com/CertifiedCoders) (Fork maintainer)
+
+---
+
+## 🔗 Links
+
+- **[GitHub Repository](https://github.com/CertifiedCoders/youtube-search-python)**
+- **[PyPI Package](https://pypi.org/project/youtube-search-python)**

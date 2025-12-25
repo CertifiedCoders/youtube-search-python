@@ -114,3 +114,4 @@ singleUrlA = fetcher.get(videoA, 22)
 allUrlsB = fetcher.getAll(videoB)
 print(singleUrlA)
 print(allUrlsB)
+
