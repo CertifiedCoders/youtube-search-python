@@ -83,6 +83,7 @@ class StreamURLFetcherCore(RequestCore):
             self._js = None
             self._getJS()
         try:
+            processed_formats = set()
             server_abr_url = getValue(self._streaming_data, ["serverAbrStreamingUrl"])
             if server_abr_url:
                 for yt_format in self._player_response:
@@ -91,10 +92,13 @@ class StreamURLFetcherCore(RequestCore):
                             yt_format["url"] = server_abr_url
                             yt_format["throttled"] = False
                             self._streams.append(yt_format)
+                            processed_formats.add(id(yt_format))
                             if self.format_id is not None:
                                 return
             
             for yt_format in self._player_response:
+                if id(yt_format) in processed_formats:
+                    continue
                 if self.format_id == yt_format["itag"] or self.format_id is None:
                     if getValue(yt_format, ["url"]):
                         yt_format["throttled"] = False
