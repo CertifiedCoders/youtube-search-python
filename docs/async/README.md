@@ -1,4 +1,4 @@
-# Asynchronous API
+# Asynchronous API Documentation
 
 This document covers the asynchronous API for `youtube-search-python`. For installation, project overview, and general information, see the [main README](../../README.md).
 
@@ -9,7 +9,7 @@ The async API provides non-blocking, high-performance access to YouTube search a
 ## Import
 
 ```python
-from youtubesearchpython.aio import VideosSearch, ChannelsSearch, PlaylistsSearch, Search, CustomSearch
+from youtubesearchpython.aio import VideosSearch, ChannelsSearch, PlaylistsSearch, Search, CustomSearch, ChannelSearch
 from youtubesearchpython.aio import Video, Playlist, Channel, Comments, Transcript, Hashtag, Suggestions
 from youtubesearchpython.aio import StreamURLFetcher, playlist_from_channel_id
 ```
@@ -127,7 +127,7 @@ asyncio.run(main())
 ### Working with playlists
 
 ```python
-from youtubesearchpython.aio import Playlist, playlist_from_channel_id
+from youtubesearchpython.aio import Playlist
 
 async def main():
     playlist = Playlist('https://www.youtube.com/playlist?list=PLRBp0Fe2GpgmsW46rJyudVFlY6IYjFBIK')
@@ -241,6 +241,8 @@ import asyncio
 asyncio.run(main())
 ```
 
+**Note:** `getNextComments()` can also be called without `init()` - it will initialize automatically on first call.
+
 ### Get first 20 comments
 
 ```python
@@ -305,6 +307,20 @@ import asyncio
 asyncio.run(main())
 ```
 
+### Channel search
+
+```python
+from youtubesearchpython.aio import ChannelSearch
+
+async def main():
+    search = ChannelSearch('Watermelon Sugar', "UCZFWPqqPkFlNwIxcpsLOwew")
+    result = await search.next()
+    print(result)
+
+import asyncio
+asyncio.run(main())
+```
+
 ## Timeout
 
 The default timeout is 10 seconds. You can override it by passing a `timeout` parameter (in seconds) to class constructors:
@@ -313,6 +329,16 @@ The default timeout is 10 seconds. You can override it by passing a `timeout` pa
 videosSearch = VideosSearch('query', limit=10, timeout=30)
 ```
 
+## Key Differences from Sync API
+
+- Use `await search.next()` instead of `search.result()` to get results
+- `next()` returns the result dictionary directly (not a boolean)
+- All async methods must be called with `await`
+- Use `await playlist.init()` or `await channel.init()` for initialization
+- Use `await comments.init()` before accessing comments (or call `getNextComments()` which initializes automatically)
+
 ## See Also
 
 - [Main README](../../README.md) - Installation, sync API examples, and project information
+- [Synchronous API Documentation](../sync/README.md) - Complete guide to the synchronous API
+

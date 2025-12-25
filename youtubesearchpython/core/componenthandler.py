@@ -27,7 +27,10 @@ def getVideoId(videoLink: str) -> str:
             return path_part.split('/')[-2]
         return path_part.split('/')[-1]
     elif 'youtube.com' in videoLink:
-        if 'v=' in videoLink:
+        if '/shorts/' in videoLink:
+            path_part = videoLink.split('/shorts/')[1].split('?')[0].split('#')[0]
+            return path_part
+        elif 'v=' in videoLink:
             v_index = videoLink.index('v=') + 2
             end_index = len(videoLink)
             for char in ['&', '#']:
