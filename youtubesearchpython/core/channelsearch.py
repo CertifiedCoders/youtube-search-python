@@ -1,11 +1,13 @@
 import copy
-from typing import Union
+from typing import Union, Optional
 import json
 from urllib.parse import urlencode
 
 from youtubesearchpython.core.requests import RequestCore
-from youtubesearchpython.handlers.componenthandler import ComponentHandler
+from youtubesearchpython.core.componenthandler import ComponentHandler
 from youtubesearchpython.core.constants import *
+from youtubesearchpython.core.exceptions import YouTubeRequestError, YouTubeParseError
+import httpx
 
 
 class ChannelSearchCore(RequestCore, ComponentHandler):
@@ -78,9 +80,10 @@ class ChannelSearchCore(RequestCore, ComponentHandler):
                     self.response = []
             else:
                 self.response = []
+        except (KeyError, AttributeError, IndexError) as e:
+            raise YouTubeParseError(f'Failed to parse YouTube response: {str(e)}')
         except Exception as e:
-            # More detailed error for debugging
-            raise Exception(f'ERROR: Could not parse YouTube response. {str(e)}')
+            raise YouTubeParseError(f'Unexpected error parsing response: {str(e)}')
 
     def _getRequestBody(self):
         ''' Fixes #47 '''
@@ -101,21 +104,37 @@ class ChannelSearchCore(RequestCore, ComponentHandler):
         ''' Fixes #47 '''
         self._getRequestBody()
 
-        request = self.syncPostRequest()
         try:
+            request = self.syncPostRequest()
+            if request.status_code != 200:
+                raise YouTubeRequestError(f'Request failed with status code {request.status_code}. URL: {self.url}')
             self.response = request.json()
-        except:
-            raise Exception('ERROR: Could not make request.')
+        except httpx.RequestError as e:
+            raise YouTubeRequestError(f'Failed to make request to {self.url}: {str(e)}')
+        except httpx.HTTPStatusError as e:
+            raise YouTubeRequestError(f'HTTP error {e.response.status_code} for {self.url}: {str(e)}')
+        except json.JSONDecodeError as e:
+            raise YouTubeRequestError(f'Failed to decode JSON response: {str(e)}')
+        except Exception as e:
+            raise YouTubeRequestError(f'Unexpected error making request: {str(e)}')
 
     async def _asyncRequest(self) -> None:
         ''' Fixes #47 '''
         self._getRequestBody()
 
-        request = await self.asyncPostRequest()
         try:
+            request = await self.asyncPostRequest()
+            if request.status_code != 200:
+                raise YouTubeRequestError(f'Request failed with status code {request.status_code}. URL: {self.url}')
             self.response = request.json()
-        except:
-            raise Exception('ERROR: Could not make request.')
+        except httpx.RequestError as e:
+            raise YouTubeRequestError(f'Failed to make request to {self.url}: {str(e)}')
+        except httpx.HTTPStatusError as e:
+            raise YouTubeRequestError(f'HTTP error {e.response.status_code} for {self.url}: {str(e)}')
+        except json.JSONDecodeError as e:
+            raise YouTubeRequestError(f'Failed to decode JSON response: {str(e)}')
+        except Exception as e:
+            raise YouTubeRequestError(f'Unexpected error making request: {str(e)}')
 
     def result(self, mode: int = ResultMode.dict) -> Union[str, dict]:
         '''Returns the search result.

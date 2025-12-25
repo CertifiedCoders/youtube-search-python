@@ -1,5 +1,5 @@
 import json
-from typing import Union
+from typing import Union, Optional
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -7,6 +7,7 @@ import httpx
 
 from youtubesearchpython.core.constants import ResultMode, userAgent
 from youtubesearchpython.core.requests import RequestCore
+from youtubesearchpython.core.exceptions import YouTubeParseError
 
 
 class SuggestionsCore(RequestCore):
@@ -41,8 +42,8 @@ class SuggestionsCore(RequestCore):
         }
     '''
 
-    def __init__(self, language: str = 'en', region: str = 'US', timeout: int = None):
-        super().__init__()
+    def __init__(self, language: str = 'en', region: str = 'US', timeout: Optional[int] = None):
+        super().__init__(timeout=timeout)
         self.language = language
         self.region = region
         self.timeout = timeout
@@ -100,7 +101,7 @@ class SuggestionsCore(RequestCore):
                 # Try parsing the entire response as JSON
                 try:
                     self.responseSource = json.loads(self.response)
-                except:
+                except json.JSONDecodeError:
                     # Try to extract JSON array directly
                     # Look for array pattern like [["query1", ...], ["query2", ...]]
                     import re
@@ -109,9 +110,11 @@ class SuggestionsCore(RequestCore):
                     if match:
                         self.responseSource = json.loads(match.group())
                     else:
-                        raise Exception('Could not find JSON in response')
+                        raise YouTubeParseError('Could not find JSON in response')
+        except (json.JSONDecodeError, KeyError, AttributeError) as e:
+            raise YouTubeParseError(f'Failed to parse YouTube suggestions response: {str(e)}')
         except Exception as e:
-            raise Exception(f'ERROR: Could not parse YouTube response. {str(e)}')
+            raise YouTubeParseError(f'Unexpected error parsing suggestions: {str(e)}')
 
     def __makeRequest(self) -> None:
         request = self.syncGetRequest()

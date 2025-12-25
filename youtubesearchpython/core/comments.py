@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 from youtubesearchpython.core.componenthandler import getVideoId, getValue
 from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.requests import RequestCore
+from youtubesearchpython.core.exceptions import YouTubeRequestError
 
 K = TypeVar("K")
 T = TypeVar("T")
@@ -132,7 +133,7 @@ class CommentsCore(RequestCore):
             # Don't raise error if continuation key is None - video might not have comments
             # The comment request will handle empty results gracefully
         else:
-            raise Exception(f"Status code is not 200: {self.response.status_code}")
+            raise YouTubeRequestError(f"Status code is not 200: {self.response.status_code}")
 
     async def async_make_comment_request(self):
         self.prepare_comments_request()
@@ -148,7 +149,7 @@ class CommentsCore(RequestCore):
             # Don't raise error if continuation key is None - video might not have comments
             # The comment request will handle empty results gracefully
         else:
-            raise Exception(f"Status code is not 200: {self.response.status_code}")
+            raise YouTubeRequestError(f"Status code is not 200: {self.response.status_code}")
 
     def sync_create(self):
         self.sync_make_continuation_request()
@@ -205,7 +206,7 @@ class CommentsCore(RequestCore):
                     "replyCount": self.__getValue(comment, ["replyCount"]),
                 }
                 comments.append(j)
-            except:
+            except (KeyError, AttributeError, IndexError, TypeError):
                 pass
 
         self.commentsComponent["result"].extend(comments)
@@ -249,7 +250,7 @@ class CommentsCore(RequestCore):
             following_key = upcoming[0]
             upcoming = upcoming[1:]
             if following_key is None:
-                raise Exception("Cannot search for a key twice consecutive or at the end with no key given")
+                raise ValueError("Cannot search for a key twice consecutive or at the end with no key given")
             values = self.__getAllWithKey(source, following_key)
             for val in values:
                 yield from self.__getValueEx(val, path=upcoming)

@@ -1,9 +1,11 @@
 from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 from urllib.parse import urlencode
 import json
 import copy
-from youtubesearchpython.handlers.componenthandler import ComponentHandler
+from youtubesearchpython.core.componenthandler import ComponentHandler
 from youtubesearchpython.core.constants import *
+from youtubesearchpython.core.exceptions import YouTubeRequestError, YouTubeParseError
 
 
 class RequestHandler(ComponentHandler):
@@ -33,8 +35,10 @@ class RequestHandler(ComponentHandler):
         )
         try:
             self.response = urlopen(request, timeout=self.timeout).read().decode('utf_8')
-        except:
-            raise Exception('ERROR: Could not make request.')
+        except (URLError, HTTPError, TimeoutError) as e:
+            raise YouTubeRequestError(f'Failed to make request: {str(e)}')
+        except Exception as e:
+            raise YouTubeRequestError(f'Unexpected error making request: {str(e)}')
     
     def _parseSource(self) -> None:
         try:
@@ -51,5 +55,9 @@ class RequestHandler(ComponentHandler):
             else:
                 self.responseSource = self._getValue(json.loads(self.response), fallbackContentPath)
                 self.continuationKey = self._getValue(self.responseSource[-1], continuationKeyPath)
-        except:
-            raise Exception('ERROR: Could not parse YouTube response.')
+        except json.JSONDecodeError as e:
+            raise YouTubeParseError(f'Failed to parse JSON response: {str(e)}')
+        except KeyError as e:
+            raise YouTubeParseError(f'Missing expected key in response: {str(e)}')
+        except Exception as e:
+            raise YouTubeParseError(f'Failed to parse YouTube response: {str(e)}')

@@ -8,6 +8,7 @@ from youtubesearchpython.core.constants import ResultMode
 from youtubesearchpython.core.video import VideoCore
 from youtubesearchpython.core.componenthandler import getValue
 from youtubesearchpython.core.requests import RequestCore
+from youtubesearchpython.core.exceptions import YouTubeRequestError, YouTubeParseError, YouTubeSearchError
 
 isYtDLPinstalled = False
 
@@ -17,8 +18,8 @@ try:
     from yt_dlp.utils import url_or_none, try_get, update_url_query, ExtractorError
 
     isYtDLPinstalled = True
-except:
-    pass
+except ImportError:
+    isYtDLPinstalled = False
 
 
 class StreamURLFetcherCore(RequestCore):
@@ -31,7 +32,7 @@ class StreamURLFetcherCore(RequestCore):
             self.ytie.set_downloader(YoutubeDL())
             self._streams = []
         else:
-            raise Exception('ERROR: yt-dlp is not installed. To use this functionality of youtube-search-python, yt-dlp must be installed.')
+            raise YouTubeSearchError('yt-dlp is not installed. To use this functionality of youtube-search-python, yt-dlp must be installed.')
 
     def _getDecipheredURLs(self, videoFormats: dict, formatId: int = None) -> None:
         self._streams = []
@@ -43,13 +44,16 @@ class StreamURLFetcherCore(RequestCore):
                 vc = VideoCore(self.video_id, None, ResultMode.dict, None, False, overridedClient="ANDROID")
                 vc.sync_create()
                 videoFormats = vc.result
-            except:
+            except (YouTubeRequestError, YouTubeParseError, Exception):
                 # Fallback to TV_EMBED if ANDROID fails
-                vc = VideoCore(self.video_id, None, ResultMode.dict, None, False, overridedClient="TV_EMBED")
-                vc.sync_create()
-                videoFormats = vc.result
-            if not videoFormats["streamingData"]:
-                raise Exception("streamingData is not present in Video.get. This is most likely a age-restricted video")
+                try:
+                    vc = VideoCore(self.video_id, None, ResultMode.dict, None, False, overridedClient="TV_EMBED")
+                    vc.sync_create()
+                    videoFormats = vc.result
+                except Exception:
+                    pass
+            if not videoFormats.get("streamingData"):
+                raise YouTubeRequestError("streamingData is not present in Video.get. This is most likely an age-restricted video")
         
         self._streaming_data = copy.deepcopy(videoFormats["streamingData"])
         self._player_response = copy.deepcopy(videoFormats["streamingData"]["formats"])
@@ -65,7 +69,7 @@ class StreamURLFetcherCore(RequestCore):
             player_version = player_version.group().replace("\\", "")
             self._js_url = f'https://www.youtube.com/s/player/{player_version}/player_ias.vflset/en_US/base.js'
         else:
-            raise Exception("Failed to retrieve JavaScript for this video")
+            raise YouTubeRequestError("Failed to retrieve JavaScript for this video")
 
     def _getJS(self) -> None:
         self.url = 'https://www.youtube.com/iframe_api'

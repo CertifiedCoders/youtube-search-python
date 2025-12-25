@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.requests import RequestCore
 from youtubesearchpython.core.componenthandler import getValue, getVideoId
+from youtubesearchpython.core.exceptions import YouTubeRequestError
 
 
 
@@ -27,7 +28,7 @@ class TranscriptCore(RequestCore):
         j = r.json()
         panels = getValue(j, ["engagementPanels"])
         if not panels:
-            raise Exception("Failed to create first request - No engagementPanels is present.")
+            raise YouTubeRequestError("Failed to create first request - No engagementPanels is present.")
         key = ""
         for panel in panels:
             panel = panel["engagementPanelSectionListRenderer"]

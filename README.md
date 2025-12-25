@@ -2,6 +2,8 @@
 
 #### 🔎 Search YouTube videos, channels, and playlists — without using the YouTube Data API v3.
 
+**Version:** 1.6.10 | **Python:** 3.7–3.13 | **Maintainer:** [CertifiedCoders](https://github.com/CertifiedCoders)
+
 [![PyPI - Version](https://img.shields.io/pypi/v/youtube-search-python?style=for-the-badge)](https://pypi.org/project/youtube-search-python)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/youtube-search-python?label=DOWNLOADS&style=for-the-badge)](https://pypi.org/project/youtube-search-python)
 [![Install via GitHub](https://img.shields.io/badge/install-gitHub-blue?style=for-the-badge&logo=github)](https://github.com/CertifiedCoders/youtube-search-python)
@@ -19,12 +21,16 @@ This is an **actively maintained fork** of [youtube-search-python](https://githu
 
 This maintained fork includes all improvements and fixes made since the original repository's last commit. Here's a summary of key changes:
 
-#### Version 1.6.9 (Latest)
+#### Version 1.6.10 (Latest)
 - 🔄 **Renamed async module** - Changed `__future__` to `aio` for shorter, cleaner imports (`from youtubesearchpython.aio import VideosSearch`)
-- 📱 **ANDROID client default** - Video classes now use ANDROID client by default for better compatibility and direct URL access
-- 🔄 **Stream URL improvements** - Enhanced age-restricted video handling with ANDROID fallback and serverAbrStreamingUrl support
-- 🧹 **URL cleaning** - Automatic URL parameter cleaning for proper video ID extraction
+- 📱 **ANDROID client default** - Video classes now use ANDROID client by default (`overridedClient="ANDROID"`) for better compatibility and direct URL access
+- 🔄 **Stream URL improvements** - Enhanced age-restricted video handling with ANDROID fallback and `serverAbrStreamingUrl` support in StreamURLFetcher
+- 🧹 **URL cleaning** - New `_get_cleaned_url()` function automatically removes extra parameters from YouTube URLs for proper video ID extraction
 - 🔢 **Updated client versions** - Bumped ANDROID to 19.02.39 and MWEB to 2.20240425.01.00
+- 🖼️ **Enhanced thumbnail handling** - New `__enhanceThumbnails()` methods automatically detect and add maxresdefault (1920x1080) and optimized hq720 (1280x720) thumbnails when available
+- 🔍 **Thumbnail optimization** - Smart thumbnail fetching with `__getOptimizedHq720Url()` method that searches for higher quality thumbnails via YouTube search API
+- ⚡ **Improved error handling** - Enhanced error messages in `sync_create()` with detailed JSON error parsing, error codes, messages, and reasons for better debugging
+- 🛡️ **Better exception handling** - Improved error handling in StreamURLFetcher with proper fallback chain (ANDROID → TV_EMBED) for age-restricted videos
 
 #### Version 1.6.8
 - 🐛 **Bug fixes** - Fixed Video ID extraction, Transcript null handling, ChannelSearch parsing, Comments continuation, and Suggestions JSON parsing
@@ -91,8 +97,10 @@ pip install --upgrade git+https://github.com/CertifiedCoders/youtube-search-pyth
 
 ### Requirements
 
-- Python 3.7 or higher
+- Python 3.7–3.13
 - httpx >= 0.28.1 (installed automatically)
+
+**Timeout Behavior:** The default timeout for requests is 10 seconds. You can override this by passing a `timeout` parameter (in seconds) to any class constructor. Pass `None` to use the default timeout of 10 seconds.
 
 ---
 
@@ -212,19 +220,33 @@ print(videosSearch.result())
 
 </details>
 
-## Async
+## Async Usage
 
-#### Search for only videos
+The library provides an asynchronous API through the `aio` subpackage. Async methods are non-blocking and generally faster than the sync version.
 
+**Import from the `aio` subpackage:**
+```python
+from youtubesearchpython.aio import VideosSearch, ChannelsSearch, PlaylistsSearch, Search, Video, Playlist
+```
+
+**Basic async example:**
 ```python
 from youtubesearchpython.aio import VideosSearch
 
-videosSearch = VideosSearch('NoCopyrightSounds', limit = 2)
-videosResult = await videosSearch.next()
-print(videosResult)
+async def search_videos():
+    videosSearch = VideosSearch('NoCopyrightSounds', limit=2)
+    videosResult = await videosSearch.next()
+    print(videosResult)
+
+# Run with: asyncio.run(search_videos())
 ```
 
-Read more about usage & examples of newer asynchronous version of this library [HERE](https://github.com/CertifiedCoders/youtube-search-python/tree/main/youtubesearchpython/aio).
+**Key differences from sync API:**
+- Use `await search.next()` instead of `search.result()` to get results
+- `next()` returns the result dictionary directly (not a boolean)
+- All async methods must be called with `await`
+
+For detailed async examples and advanced usage, see the [async documentation](youtubesearchpython/aio/README.md).
 
 
 ## More Examples
@@ -695,7 +717,7 @@ print(allSearch.result())
 
 </details>
 
-You may see the [example](https://github.com/alexmercerind/youtube-search-python/blob/main/syncExample.py) for more information.
+You may see the [example](https://github.com/CertifiedCoders/youtube-search-python/blob/main/syncExample.py) for more information.
 
 
 ## Advanced
@@ -965,7 +987,7 @@ print(videoFormats)
 '''
 Getting information about playlist or videos in it using its link.
 
-`Playlist.get` method will give both information & formats of the playlist
+`Playlist.get` method will give both information & videos in the playlist
 `Playlist.getInfo` method will give only information about the playlist.
 `Playlist.getVideos` method will give only videos in the playlist.
 
@@ -2413,80 +2435,45 @@ while channel.has_more_playlists():
 
 
 ## Contributors
+
 Thanks to everyone contributing to this library, including those not mentioned here.
 
-I included only contributors and people, who we can thank for their extensive reports to make the library better.
+### Current Maintainer
 
-Contributors are added irrespective of order.
+- **[CertifiedCoders](https://github.com/CertifiedCoders)** - Current fork maintainer, actively maintaining the project with modern Python support and bug fixes
 
-<ul>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/28951144?s=80&v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/alexmercerind'>Hitesh Kumar Saini</a></strong>
-    <ul>
-      <li>Creator of this library, contributed most classes to this library.</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/52399966?s=80&v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/mytja'>mytja</a></strong>
-    <ul>
-      <li>Current maintainer of this library. Author of Core classes, Comments and Transcript classes, ytdlp migration</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/64320078?s=80&v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/raitonoberu'>Denis</a></strong>
-    <ul>
-      <li>Maintainer and reviewer of PRs. Author of Hashtag class.</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/42294590?v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/fabi321'>Fabian Wunsch</a></strong>
-    <ul>
-      <li>Fixes to ChannelSearch & retrieving Playlists from Channel class</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/1645646?v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/Zocker1999NET'>Felix Stupp</a></strong>
-    <ul>
-      <li>Video and Playlist class contributor. Extensive issues.</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/30200788?v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/dscrofts'>dscrofts</a></strong>
-    <ul>
-      <li>Extensive issues, mostly about Playlist and Video class.</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/5200252?v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/AlexandreOuellet'>AlexandreOuellet</a></strong>
-    <ul>
-      <li>Added publishDate and uploadDate to Video class.</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/52490534?v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/rking32'>None</a></strong>
-    <ul>
-      <li>Bumped httpx version to 0.14.2.</li>
-    </ul>
-  </li>
-  <li>
-    <img src='https://avatars.githubusercontent.com/u/64990477?v=4' height='28' width='28'></img>&nbsp;&nbsp;<strong><a href='https://github.com/Maple-Elter'>Elter</a></strong>
-    <ul>
-      <li>Fixes to Playlist class.</li>
-    </ul>
-  </li>
-</ul>
+### Original Project Contributors
+
+- **[Hitesh Kumar Saini](https://github.com/alexmercerind)** - Original creator of this library, contributed most classes to this library
+- **[mytja](https://github.com/mytja)** - Author of Core classes, Comments and Transcript classes, yt-dlp migration
+- **[Denis (raitonoberu)](https://github.com/raitonoberu)** - Author of Hashtag class, maintainer and reviewer of PRs
+- **[Fabian Wunsch (fabi321)](https://github.com/fabi321)** - Fixes to ChannelSearch & retrieving Playlists from Channel class
+- **[Felix Stupp (Zocker1999NET)](https://github.com/Zocker1999NET)** - Video and Playlist class contributor, extensive issues
+- **[dscrofts](https://github.com/dscrofts)** - Extensive issues, mostly about Playlist and Video class
+- **[AlexandreOuellet](https://github.com/AlexandreOuellet)** - Added publishDate and uploadDate to Video class
+- **[rking32](https://github.com/rking32)** - Bumped httpx version to 0.14.2
+- **[Elter (Maple-Elter)](https://github.com/Maple-Elter)** - Fixes to Playlist class
+
+Contributors are listed in no particular order. We appreciate all contributions, reports, and feedback that help make this library better.
 
 
 ## License
 
 MIT License
 
-Copyright (c) 2021 [Hitesh Kumar Saini](https://github.com/alexmercerind)
+Copyright (c) 2021 [Hitesh Kumar Saini](https://github.com/alexmercerind)  
+Copyright (c) 2022-2024 [CertifiedCoders](https://github.com/CertifiedCoders) (Fork maintainer)
 
 ## Information
 
-- All the research, for making this library possible, is entirely done by myself.
-- You can use this library & segments of code from it in your projects in any way you want. Just respect the MIT license & credit the original author of the project.
-- Current version of this project (`main` branch) simulates the requests made by YouTube's web client during client side rendering. In simple words, it does not fetch any specific webpage's HTML, but the JSONs internally fetched by YouTube when you navigate the website, after loading the webpage completely.
-- I do not resist you from using this library in any possible manner, but YouTube T&C stop you from using this library commercially. Respect the law.
-- As you might tell by the name of the project, this library initially only used to support searching of videos. Later on, as the project grew, I added a lot of additional features after requests from people. Now, its really powerful.
+- **Current Version:** 1.6.10
+- **Python Support:** 3.7–3.13
+- **Maintainer:** [CertifiedCoders](https://github.com/CertifiedCoders)
+- **Original Author:** [Hitesh Kumar Saini](https://github.com/alexmercerind)
+
+### Technical Details
+
+- This library simulates the requests made by YouTube's web client during client-side rendering. It does not fetch webpage HTML, but rather the JSON data internally fetched by YouTube when you navigate the website.
+- You can use this library and segments of code from it in your projects in any way you want. Just respect the MIT license and credit the original author of the project.
+- **Important:** YouTube's Terms of Service may restrict commercial use of this library. Please respect the law and YouTube's terms.
+- This library started as a simple video search tool but has grown to include comprehensive YouTube data retrieval features including videos, channels, playlists, comments, transcripts, and more.

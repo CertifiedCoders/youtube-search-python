@@ -1,12 +1,13 @@
 import copy
 import json
-from typing import Union, List
+from typing import Union, List, Optional
 from urllib.parse import urlencode, urlparse, parse_qs
 import httpx
 
 from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.requests import RequestCore
 from youtubesearchpython.core.componenthandler import getValue, getVideoId
+from youtubesearchpython.core.exceptions import YouTubeRequestError, YouTubeParseError
 
 
 CLIENTS = {
@@ -71,8 +72,8 @@ def _get_cleaned_url(video_link: str) -> str:
 
 
 class VideoCore(RequestCore):
-    def __init__(self, videoLink: str, componentMode: str, resultMode: int, timeout: int, enableHTML: bool, overridedClient: str = "ANDROID"):
-        super().__init__()
+    def __init__(self, videoLink: str, componentMode: str, resultMode: int, timeout: Optional[int], enableHTML: bool, overridedClient: str = "ANDROID"):
+        super().__init__(timeout=timeout)
         self.timeout = timeout
         self.resultMode = resultMode
         self.componentMode = componentMode
@@ -110,7 +111,7 @@ class VideoCore(RequestCore):
         if response is None:
             video_link = getattr(self, "videoLink", None)
             request_params = getattr(self, "innertube_request", None)
-            raise Exception(
+            raise YouTubeRequestError(
                 f"The request returned an empty response. "
                 f"Video link: {video_link}, Request parameters: {request_params}"
             )
@@ -119,7 +120,7 @@ class VideoCore(RequestCore):
         if response.status_code == 200:
             await self.async_post_request_processing()
         else:
-            raise Exception("ERROR: Invalid status code.")
+            raise YouTubeRequestError(f"Invalid status code {response.status_code} for video {self.videoLink}")
 
     def sync_create(self):
         self.prepare_innertube_request()
@@ -141,14 +142,14 @@ class VideoCore(RequestCore):
                         if 'errors' in error_details and len(error_details['errors']) > 0:
                             first_error = error_details['errors'][0]
                             error_msg += f", Reason: {first_error.get('reason', 'N/A')}"
-                except:
+                except (json.JSONDecodeError, KeyError, AttributeError):
                     pass
                 # Limit to 500 chars for readability
                 if len(error_msg) > 500:
                     error_msg = error_msg[:500] + "..."
-            except:
+            except (AttributeError, KeyError):
                 error_msg = 'Could not read response text'
-            raise Exception(f'ERROR: Invalid status code {response.status_code}. Response: {error_msg}')
+            raise YouTubeRequestError(f'Invalid status code {response.status_code} for video {self.videoLink}. Response: {error_msg}')
 
     def prepare_html_request(self):
         self.url = 'https://www.youtube.com/youtubei/v1/player' + "?" + urlencode({
@@ -172,8 +173,10 @@ class VideoCore(RequestCore):
     def __parseSource(self) -> None:
         try:
             self.responseSource = json.loads(self.response)
+        except json.JSONDecodeError as e:
+            raise YouTubeParseError(f'Failed to parse JSON response for video {self.videoLink}: {str(e)}')
         except Exception as e:
-            raise Exception('ERROR: Could not parse YouTube response.')
+            raise YouTubeParseError(f'Failed to parse YouTube response: {str(e)}')
 
     def __result(self, mode: int) -> Union[dict, str]:
         if mode == ResultMode.dict:
@@ -185,7 +188,7 @@ class VideoCore(RequestCore):
         try:
             response = httpx.head(url, headers={"User-Agent": userAgent}, timeout=2, follow_redirects=True)
             return response.status_code == 200
-        except:
+        except (httpx.RequestError, httpx.HTTPStatusError, Exception):
             return False
 
     async def __checkThumbnailExistsAsync(self, url: str) -> bool:
@@ -193,7 +196,7 @@ class VideoCore(RequestCore):
             async with httpx.AsyncClient() as client:
                 response = await client.head(url, headers={"User-Agent": userAgent}, timeout=2, follow_redirects=True)
                 return response.status_code == 200
-        except:
+        except (httpx.RequestError, httpx.HTTPStatusError, Exception):
             return False
 
     def __getBestHq720FromThumbnails(self, thumbnails: List[dict]) -> Union[dict, None]:

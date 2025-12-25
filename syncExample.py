@@ -91,7 +91,7 @@ for video in search.result()['result']:
 '''
 Getting information about playlist or videos in it using its link.
 
-`Playlist.get` method will give both information & formats of the playlist
+`Playlist.get` method will give both information & videos in the playlist
 `Playlist.getInfo` method will give only information about the playlist.
 `Playlist.getVideos` method will give only videos in the playlist.
 
@@ -179,11 +179,11 @@ print(channel.result(mode=ResultMode.json))
 Getting direct stream URL for a video.
 You may show search suggestions to users before making any search.
 
-To use this, you must have PyTube installed.
+To use this, you must have yt-dlp installed.
 StreamURLFetcher can fetch direct video URLs without any additional network requests (that's really fast).
 Call `get` or `getAll` method of StreamURLFetcher & pass response returned by `Video.get` or `Video.getFormats` as parameter to fetch direct URLs.
-Getting URLs or downloading streams using youtube-dl or PyTube is can be a slow, because of the fact that they make requests to fetch the same content, which one might have already recieved at the time of showing it to the user etc.
-StreamURLFetcher makes use of PyTube (if installed) & makes some slight improvements to functioning of PyTube.
+Getting URLs or downloading streams using youtube-dl or yt-dlp is can be a slow, because of the fact that they make requests to fetch the same content, which one might have already recieved at the time of showing it to the user etc.
+StreamURLFetcher makes use of yt-dlp (if installed) & makes some slight improvements to functioning of yt-dlp.
 Avoid instantiating StreamURLFetcher more than once, it will be slow (making global object of the class will be a recommended solution).
 
 `get` method can be handy for getting URL of a particular kind. `getAll` returns all stream URLs in a dictionary.

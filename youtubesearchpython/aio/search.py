@@ -13,6 +13,7 @@ class Search(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -87,6 +88,7 @@ class VideosSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -161,6 +163,7 @@ class ChannelsSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -210,6 +213,7 @@ class PlaylistsSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -282,6 +286,7 @@ class CustomSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
     
     Examples:
         Calling `result` method gives the search result.
@@ -355,6 +360,7 @@ class ChannelSearch(ChannelSearchCore):
         browseId (str): Channel ID
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
