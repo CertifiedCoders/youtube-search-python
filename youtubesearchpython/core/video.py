@@ -2,6 +2,7 @@ import copy
 import json
 from typing import Union, List
 from urllib.parse import urlencode, urlparse, parse_qs
+import httpx
 
 from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.requests import RequestCore
@@ -175,6 +176,113 @@ class VideoCore(RequestCore):
         elif mode == ResultMode.json:
             return json.dumps(self.__videoComponent, indent=4)
 
+    def __checkThumbnailExists(self, url: str) -> bool:
+        try:
+            response = httpx.head(url, headers={"User-Agent": userAgent}, timeout=2, follow_redirects=True)
+            return response.status_code == 200
+        except:
+            return False
+
+    def __getBestHq720FromThumbnails(self, thumbnails: List[dict]) -> Union[dict, None]:
+        best_thumb = None
+        best_resolution = 0
+        for thumb in thumbnails:
+            url_value = thumb.get('url', '')
+            if 'hq720.jpg' in url_value:
+                width = thumb.get('width', 0)
+                height = thumb.get('height', 0)
+                resolution = width * height
+                if resolution > best_resolution:
+                    best_resolution = resolution
+                    full_url = url_value if url_value.startswith('http') else 'https:' + url_value
+                    best_thumb = {
+                        "url": full_url,
+                        "width": width,
+                        "height": height
+                    }
+        return best_thumb
+
+    def __getOptimizedHq720Url(self, video_id: str) -> Union[dict, None]:
+        try:
+            request_body = copy.deepcopy(requestPayload)
+            request_body['query'] = f"https://www.youtube.com/watch?v={video_id}"
+            request_body['client'] = {
+                'hl': 'en',
+                'gl': 'US',
+            }
+            
+            url = 'https://www.youtube.com/youtubei/v1/search' + '?' + urlencode({'key': searchKey})
+            response = httpx.post(
+                url,
+                headers={"User-Agent": userAgent, "Content-Type": "application/json"},
+                json=request_body,
+                timeout=self.timeout if self.timeout else 5
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                contents = getValue(data, contentPath)
+                fallback_contents = getValue(data, fallbackContentPath)
+                
+                search_contents = contents if contents else fallback_contents
+                if search_contents:
+                    for item in search_contents:
+                        video_data = None
+                        if itemSectionKey in item:
+                            section_contents = getValue(item, [itemSectionKey, 'contents'])
+                            if section_contents:
+                                for section_item in section_contents:
+                                    if videoElementKey in section_item:
+                                        video_data = section_item[videoElementKey]
+                                        break
+                        elif videoElementKey in item:
+                            video_data = item[videoElementKey]
+                        
+                        if video_data:
+                            found_video_id = getValue(video_data, ['videoId'])
+                            if found_video_id == video_id:
+                                thumbnails = getValue(video_data, ['thumbnail', 'thumbnails'])
+                                if thumbnails:
+                                    best_thumb = self.__getBestHq720FromThumbnails(thumbnails)
+                                    if best_thumb:
+                                        return best_thumb
+        except Exception:
+            pass
+        return None
+
+    def __enhanceThumbnails(self, thumbnails: List[dict], video_id: str) -> List[dict]:
+        if not thumbnails or not video_id:
+            return thumbnails
+        
+        enhanced = list(thumbnails)
+        existing_urls = {thumb.get("url", "") for thumb in enhanced if isinstance(thumb, dict)}
+        existing_base_urls = {url.split('?')[0] if '?' in url else url for url in existing_urls}
+        
+        maxres_candidate = {
+            "url": f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg",
+            "width": 1920,
+            "height": 1080
+        }
+        
+        if maxres_candidate["url"] not in existing_base_urls and self.__checkThumbnailExists(maxres_candidate["url"]):
+            enhanced.append(maxres_candidate)
+        
+        optimized_hq720 = self.__getOptimizedHq720Url(video_id)
+        if optimized_hq720:
+            optimized_url = optimized_hq720["url"]
+            if optimized_url not in existing_urls and optimized_url.split('?')[0] not in existing_base_urls:
+                enhanced.append(optimized_hq720)
+        else:
+            base_hq720 = {
+                "url": f"https://i.ytimg.com/vi/{video_id}/hq720.jpg",
+                "width": 1280,
+                "height": 720
+            }
+            if base_hq720["url"] not in existing_base_urls and self.__checkThumbnailExists(base_hq720["url"]):
+                enhanced.append(base_hq720)
+        
+        return enhanced
+
     def __getVideoComponent(self, mode: str) -> None:
         videoComponent = {}
         if mode in ["getInfo", None]:
@@ -243,6 +351,10 @@ class VideoCore(RequestCore):
                 )
             else:
                 component["channel"]["link"] = None
+            
+            if component.get("thumbnails") and component.get("id"):
+                component["thumbnails"] = self.__enhanceThumbnails(component["thumbnails"], component["id"])
+            
             videoComponent.update(component)
         if mode in ["getFormats", None]:
             videoComponent.update(
