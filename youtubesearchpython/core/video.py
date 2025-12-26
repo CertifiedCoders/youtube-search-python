@@ -1,13 +1,19 @@
 import copy
 import json
 from typing import Union, List, Optional
-from urllib.parse import urlencode, urlparse, parse_qs
+from urllib.parse import urlencode
 import httpx
 
 from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.requests import RequestCore
 from youtubesearchpython.core.componenthandler import getValue, getVideoId
 from youtubesearchpython.core.exceptions import YouTubeRequestError, YouTubeParseError
+from youtubesearchpython.core.utils import (
+    get_cleaned_url,
+    format_view_count,
+    format_duration,
+    format_published_time
+)
 
 
 CLIENTS = {
@@ -59,25 +65,13 @@ CLIENTS = {
 }
 
 
-def _get_cleaned_url(video_link: str) -> str:
-    """
-    Cleans the YouTube video link by removing any extra parameters,
-    ensuring only the video ID is present.
-    """
-    parsed_url = urlparse(video_link)
-    video_id = parse_qs(parsed_url.query).get("v")
-    if video_id:
-        return f"https://www.youtube.com/watch?v={video_id[0]}"
-    return video_link
-
-
 class VideoCore(RequestCore):
     def __init__(self, videoLink: str, componentMode: str, resultMode: int, timeout: Optional[int], enableHTML: bool, overridedClient: str = "ANDROID"):
         super().__init__(timeout=timeout)
         self.timeout = timeout
         self.resultMode = resultMode
         self.componentMode = componentMode
-        self.videoLink = _get_cleaned_url(videoLink)
+        self.videoLink = get_cleaned_url(videoLink)
         self.enableHTML = enableHTML
         self.overridedClient = overridedClient
     
@@ -323,28 +317,26 @@ class VideoCore(RequestCore):
         existing_urls = {thumb.get("url", "") for thumb in enhanced if isinstance(thumb, dict)}
         existing_base_urls = {url.split('?')[0] if '?' in url else url for url in existing_urls}
         
-        maxres_candidate = {
-            "url": f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg",
-            "width": 1920,
-            "height": 1080
-        }
+        standard_thumbnails = [
+            {"url": f"https://i.ytimg.com/vi/{video_id}/default.jpg", "width": 120, "height": 90},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg", "width": 320, "height": 180},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg", "width": 480, "height": 360},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/sddefault.jpg", "width": 640, "height": 480},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg", "width": 1920, "height": 1080},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/hq720.jpg", "width": 1280, "height": 720},
+        ]
         
-        if maxres_candidate["url"] not in existing_base_urls and self.__checkThumbnailExists(maxres_candidate["url"]):
-            enhanced.append(maxres_candidate)
+        for thumb in standard_thumbnails:
+            base_url = thumb["url"]
+            if base_url not in existing_base_urls:
+                if self.__checkThumbnailExists(base_url):
+                    enhanced.append(thumb)
         
         optimized_hq720 = self.__getOptimizedHq720Url(video_id)
         if optimized_hq720:
             optimized_url = optimized_hq720["url"]
             if optimized_url not in existing_urls and optimized_url.split('?')[0] not in existing_base_urls:
                 enhanced.append(optimized_hq720)
-        else:
-            base_hq720 = {
-                "url": f"https://i.ytimg.com/vi/{video_id}/hq720.jpg",
-                "width": 1280,
-                "height": 720
-            }
-            if base_hq720["url"] not in existing_base_urls and self.__checkThumbnailExists(base_hq720["url"]):
-                enhanced.append(base_hq720)
         
         return enhanced
 
@@ -356,28 +348,26 @@ class VideoCore(RequestCore):
         existing_urls = {thumb.get("url", "") for thumb in enhanced if isinstance(thumb, dict)}
         existing_base_urls = {url.split('?')[0] if '?' in url else url for url in existing_urls}
         
-        maxres_candidate = {
-            "url": f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg",
-            "width": 1920,
-            "height": 1080
-        }
+        standard_thumbnails = [
+            {"url": f"https://i.ytimg.com/vi/{video_id}/default.jpg", "width": 120, "height": 90},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg", "width": 320, "height": 180},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg", "width": 480, "height": 360},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/sddefault.jpg", "width": 640, "height": 480},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg", "width": 1920, "height": 1080},
+            {"url": f"https://i.ytimg.com/vi/{video_id}/hq720.jpg", "width": 1280, "height": 720},
+        ]
         
-        if maxres_candidate["url"] not in existing_base_urls and await self.__checkThumbnailExistsAsync(maxres_candidate["url"]):
-            enhanced.append(maxres_candidate)
+        for thumb in standard_thumbnails:
+            base_url = thumb["url"]
+            if base_url not in existing_base_urls:
+                if await self.__checkThumbnailExistsAsync(base_url):
+                    enhanced.append(thumb)
         
         optimized_hq720 = await self.__getOptimizedHq720UrlAsync(video_id)
         if optimized_hq720:
             optimized_url = optimized_hq720["url"]
             if optimized_url not in existing_urls and optimized_url.split('?')[0] not in existing_base_urls:
                 enhanced.append(optimized_hq720)
-        else:
-            base_hq720 = {
-                "url": f"https://i.ytimg.com/vi/{video_id}/hq720.jpg",
-                "width": 1280,
-                "height": 720
-            }
-            if base_hq720["url"] not in existing_base_urls and await self.__checkThumbnailExistsAsync(base_hq720["url"]):
-                enhanced.append(base_hq720)
         
         return enhanced
 
@@ -387,17 +377,18 @@ class VideoCore(RequestCore):
             responseSource = getattr(self, "responseSource", None)
             if self.enableHTML:
                 responseSource = self.HTMLresponseSource
+            raw_view_count = getValue(responseSource, ["videoDetails", "viewCount"])
+            raw_duration = getValue(responseSource, ["videoDetails", "lengthSeconds"])
+            publish_date = getValue(
+                responseSource,
+                ["microformat", "playerMicroformatRenderer", "publishDate"],
+            )
+            
             component = {
                 "id": getValue(responseSource, ["videoDetails", "videoId"]),
                 "title": getValue(responseSource, ["videoDetails", "title"]),
-                "duration": {
-                    "secondsText": getValue(
-                        responseSource, ["videoDetails", "lengthSeconds"]
-                    ),
-                },
-                "viewCount": {
-                    "text": getValue(responseSource, ["videoDetails", "viewCount"])
-                },
+                "duration": format_duration(raw_duration),
+                "viewCount": format_view_count(raw_view_count),
                 "thumbnails": getValue(
                     responseSource, ["videoDetails", "thumbnail", "thumbnails"]
                 ),
@@ -418,10 +409,7 @@ class VideoCore(RequestCore):
                 "isLiveContent": getValue(
                     responseSource, ["videoDetails", "isLiveContent"]
                 ),
-                "publishDate": getValue(
-                    responseSource,
-                    ["microformat", "playerMicroformatRenderer", "publishDate"],
-                ),
+                "publishDate": publish_date,
                 "uploadDate": getValue(
                     responseSource,
                     ["microformat", "playerMicroformatRenderer", "uploadDate"],
@@ -435,10 +423,16 @@ class VideoCore(RequestCore):
                     ["microformat", "playerMicroformatRenderer", "category"],
                 ),
             }
+            
+            component["publishedTime"] = format_published_time(publish_date)
+            if not component["publishedTime"] and component.get("publishDate"):
+                component["publishedTime"] = format_published_time(component["publishDate"])
+            
             component["isLiveNow"] = (
                 component["isLiveContent"]
-                and component["duration"]["secondsText"] == "0"
+                and component["duration"].get("seconds") == 0
             )
+            
             if component["id"]:
                 component["link"] = "https://www.youtube.com/watch?v=" + component["id"]
             else:
@@ -475,17 +469,18 @@ class VideoCore(RequestCore):
             responseSource = getattr(self, "responseSource", None)
             if self.enableHTML:
                 responseSource = self.HTMLresponseSource
+            raw_view_count = getValue(responseSource, ["videoDetails", "viewCount"])
+            raw_duration = getValue(responseSource, ["videoDetails", "lengthSeconds"])
+            publish_date = getValue(
+                responseSource,
+                ["microformat", "playerMicroformatRenderer", "publishDate"],
+            )
+            
             component = {
                 "id": getValue(responseSource, ["videoDetails", "videoId"]),
                 "title": getValue(responseSource, ["videoDetails", "title"]),
-                "duration": {
-                    "secondsText": getValue(
-                        responseSource, ["videoDetails", "lengthSeconds"]
-                    ),
-                },
-                "viewCount": {
-                    "text": getValue(responseSource, ["videoDetails", "viewCount"])
-                },
+                "duration": format_duration(raw_duration),
+                "viewCount": format_view_count(raw_view_count),
                 "thumbnails": getValue(
                     responseSource, ["videoDetails", "thumbnail", "thumbnails"]
                 ),
@@ -506,10 +501,7 @@ class VideoCore(RequestCore):
                 "isLiveContent": getValue(
                     responseSource, ["videoDetails", "isLiveContent"]
                 ),
-                "publishDate": getValue(
-                    responseSource,
-                    ["microformat", "playerMicroformatRenderer", "publishDate"],
-                ),
+                "publishDate": publish_date,
                 "uploadDate": getValue(
                     responseSource,
                     ["microformat", "playerMicroformatRenderer", "uploadDate"],
@@ -523,10 +515,16 @@ class VideoCore(RequestCore):
                     ["microformat", "playerMicroformatRenderer", "category"],
                 ),
             }
+            
+            component["publishedTime"] = format_published_time(publish_date)
+            if not component["publishedTime"] and component.get("publishDate"):
+                component["publishedTime"] = format_published_time(component["publishDate"])
+            
             component["isLiveNow"] = (
                 component["isLiveContent"]
-                and component["duration"]["secondsText"] == "0"
+                and component["duration"].get("seconds") == 0
             )
+            
             if component["id"]:
                 component["link"] = "https://www.youtube.com/watch?v=" + component["id"]
             else:
