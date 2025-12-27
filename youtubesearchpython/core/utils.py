@@ -12,11 +12,38 @@ def get_cleaned_url(video_link: str) -> str:
     """
     Cleans the YouTube video link by removing any extra parameters,
     ensuring only the video ID is present.
+    Handles regular watch URLs, live URLs, shorts, youtu.be URLs, and plain video IDs.
     """
+    # Handle live URLs: https://www.youtube.com/live/VIDEO_ID
+    if '/live/' in video_link:
+        video_id = video_link.split('/live/')[1].split('?')[0].split('#')[0]
+        return f"https://www.youtube.com/watch?v={video_id}"
+    
+    # Handle regular watch URLs with v= parameter
     parsed_url = urlparse(video_link)
     video_id = parse_qs(parsed_url.query).get("v")
     if video_id:
         return f"https://www.youtube.com/watch?v={video_id[0]}"
+    
+    # Handle youtu.be URLs
+    if 'youtu.be' in video_link:
+        path_part = video_link.split('?')[0].split('#')[0]
+        if path_part[-1] == '/':
+            video_id = path_part.split('/')[-2]
+        else:
+            video_id = path_part.split('/')[-1]
+        return f"https://www.youtube.com/watch?v={video_id}"
+    
+    # Handle shorts URLs
+    if '/shorts/' in video_link:
+        video_id = video_link.split('/shorts/')[1].split('?')[0].split('#')[0]
+        return f"https://www.youtube.com/watch?v={video_id}"
+    
+    # Handle plain video IDs (11 characters, alphanumeric and hyphens/underscores)
+    # YouTube video IDs are typically 11 characters long
+    if len(video_link) == 11 and all(c.isalnum() or c in ['-', '_'] for c in video_link):
+        return f"https://www.youtube.com/watch?v={video_link}"
+    
     return video_link
 
 

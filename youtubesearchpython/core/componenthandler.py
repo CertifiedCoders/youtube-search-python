@@ -30,6 +30,10 @@ def getVideoId(videoLink: str) -> str:
         if '/shorts/' in videoLink:
             path_part = videoLink.split('/shorts/')[1].split('?')[0].split('#')[0]
             return path_part
+        elif '/live/' in videoLink:
+            # Handle live video URLs: https://www.youtube.com/live/VIDEO_ID
+            path_part = videoLink.split('/live/')[1].split('?')[0].split('#')[0]
+            return path_part
         elif 'v=' in videoLink:
             v_index = videoLink.index('v=') + 2
             end_index = len(videoLink)

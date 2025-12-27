@@ -75,7 +75,6 @@ class VideoCore(RequestCore):
         self.enableHTML = enableHTML
         self.overridedClient = overridedClient
     
-    # We call this when we use only HTML
     def post_request_only_html_processing(self):
         self.__getVideoComponent(self.componentMode)
         self.result = self.__videoComponent
@@ -236,138 +235,153 @@ class VideoCore(RequestCore):
                 found_video_id = getValue(video_data, ['videoId'])
                 if found_video_id == video_id:
                     return video_data
+                # Also check if videoId is in the navigationEndpoint (some search results structure differently)
+                nav_video_id = getValue(video_data, ['navigationEndpoint', 'watchEndpoint', 'videoId'])
+                if nav_video_id == video_id:
+                    return video_data
         return None
 
-    def __getVideoDataFromSearch(self, video_id: str) -> dict:
-        """
-        Unified method to fetch video data from search API once.
-        Returns both publishedTime and thumbnails to avoid duplicate API calls.
-        This significantly improves performance by making only one search API request.
-        
-        Returns:
-            dict with keys: 'publishedTime' (Optional[str]), 'hq720Thumbnail' (Optional[dict])
-        """
+    def __getVideoDataFromSearch(self, video_id: str, video_title: Optional[str] = None) -> dict:
         result = {'publishedTime': None, 'hq720Thumbnail': None}
         
-        try:
-            request_body = copy.deepcopy(requestPayload)
-            request_body['query'] = f"https://www.youtube.com/watch?v={video_id}"
-            request_body['client'] = {
-                'hl': 'en',
-                'gl': 'US',
-            }
-            
-            url = 'https://www.youtube.com/youtubei/v1/search' + '?' + urlencode({'key': searchKey})
-            response = httpx.post(
-                url,
-                headers={"User-Agent": userAgent, "Content-Type": "application/json"},
-                json=request_body,
-                timeout=self.timeout if self.timeout else 5
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                contents = getValue(data, contentPath)
-                fallback_contents = getValue(data, fallbackContentPath)
-                
-                search_contents = contents if contents else fallback_contents
-                video_data = self.__findVideoDataInSearchResults(search_contents, video_id)
-                
-                if video_data:
-                    # Extract publishedTime
-                    published_time = getValue(video_data, ['publishedTimeText', 'simpleText'])
-                    if published_time:
-                        result['publishedTime'] = published_time
-                    
-                    # Extract hq720 thumbnail
-                    thumbnails = getValue(video_data, ['thumbnail', 'thumbnails'])
-                    if thumbnails:
-                        best_thumb = self.__getBestHq720FromThumbnails(thumbnails)
-                        if best_thumb:
-                            result['hq720Thumbnail'] = best_thumb
-        except Exception:
-            pass
+        search_queries = []
+        if video_title:
+            search_queries.append(video_title)
+        search_queries.append(f"https://www.youtube.com/watch?v={video_id}")
+        search_queries.append(video_id)
         
-        return result
-
-    async def __getVideoDataFromSearchAsync(self, video_id: str) -> dict:
-        """
-        Async version: Unified method to fetch video data from search API once.
-        Returns both publishedTime and thumbnails to avoid duplicate API calls.
-        """
-        result = {'publishedTime': None, 'hq720Thumbnail': None}
-        
-        try:
-            request_body = copy.deepcopy(requestPayload)
-            request_body['query'] = f"https://www.youtube.com/watch?v={video_id}"
-            request_body['client'] = {
-                'hl': 'en',
-                'gl': 'US',
-            }
-            
-            url = 'https://www.youtube.com/youtubei/v1/search' + '?' + urlencode({'key': searchKey})
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
+        for query in search_queries:
+            try:
+                request_body = copy.deepcopy(requestPayload)
+                request_body['query'] = query
+                request_body['client'] = {
+                    'hl': 'en',
+                    'gl': 'US',
+                }
+                
+                url = 'https://www.youtube.com/youtubei/v1/search' + '?' + urlencode({'key': searchKey})
+                response = httpx.post(
                     url,
                     headers={"User-Agent": userAgent, "Content-Type": "application/json"},
                     json=request_body,
                     timeout=self.timeout if self.timeout else 5
                 )
-            
-            if response.status_code == 200:
-                data = response.json()
-                contents = getValue(data, contentPath)
-                fallback_contents = getValue(data, fallbackContentPath)
                 
-                search_contents = contents if contents else fallback_contents
-                video_data = self.__findVideoDataInSearchResults(search_contents, video_id)
-                
-                if video_data:
-                    # Extract publishedTime
-                    published_time = getValue(video_data, ['publishedTimeText', 'simpleText'])
-                    if published_time:
-                        result['publishedTime'] = published_time
+                if response.status_code == 200:
+                    data = response.json()
+                    contents = getValue(data, contentPath)
+                    fallback_contents = getValue(data, fallbackContentPath)
                     
-                    # Extract hq720 thumbnail
-                    thumbnails = getValue(video_data, ['thumbnail', 'thumbnails'])
-                    if thumbnails:
-                        best_thumb = self.__getBestHq720FromThumbnails(thumbnails)
-                        if best_thumb:
-                            result['hq720Thumbnail'] = best_thumb
-        except Exception:
-            pass
+                    search_contents = contents if contents else fallback_contents
+                    video_data = self.__findVideoDataInSearchResults(search_contents, video_id)
+                    
+                    if video_data:
+                        # Extract publishedTime - try multiple paths
+                        published_time = getValue(video_data, ['publishedTimeText', 'simpleText'])
+                        # Also try runs path (some videos use runs instead of simpleText)
+                        if not published_time:
+                            published_time = getValue(video_data, ['publishedTimeText', 'runs', 0, 'text'])
+                        # Try alternative paths in the video data structure
+                        if not published_time:
+                            published_time = getValue(video_data, ['publishedTimeText'])
+                        if not published_time:
+                            # Try to find in videoRenderer or other renderer types
+                            published_time = getValue(video_data, ['videoRenderer', 'publishedTimeText', 'simpleText'])
+                        if not published_time:
+                            published_time = getValue(video_data, ['videoRenderer', 'publishedTimeText', 'runs', 0, 'text'])
+                        if not published_time:
+                            # Try in overlay or other nested structures
+                            published_time = getValue(video_data, ['overlay', 'inlinePlaybackEndpointOverlayRenderer', 'publishedTimeText', 'simpleText'])
+                        if published_time:
+                            result['publishedTime'] = published_time
+                        
+                        # Extract hq720 thumbnail
+                        thumbnails = getValue(video_data, ['thumbnail', 'thumbnails'])
+                        if thumbnails:
+                            best_thumb = self.__getBestHq720FromThumbnails(thumbnails)
+                            if best_thumb:
+                                result['hq720Thumbnail'] = best_thumb
+                        
+                        # If we found publishedTime, we can stop trying other queries
+                        if result['publishedTime']:
+                            break
+            except Exception:
+                continue
         
         return result
 
-    def __getOptimizedHq720Url(self, video_id: str) -> Union[dict, None]:
-        """Legacy method - now uses unified __getVideoDataFromSearch for better performance."""
-        search_data = self.__getVideoDataFromSearch(video_id)
-        return search_data.get('hq720Thumbnail')
+    async def __getVideoDataFromSearchAsync(self, video_id: str, video_title: Optional[str] = None) -> dict:
+        result = {'publishedTime': None, 'hq720Thumbnail': None}
+        
+        search_queries = []
+        if video_title:
+            search_queries.append(video_title)
+        search_queries.append(f"https://www.youtube.com/watch?v={video_id}")
+        search_queries.append(video_id)
+        
+        for query in search_queries:
+            try:
+                request_body = copy.deepcopy(requestPayload)
+                request_body['query'] = query
+                request_body['client'] = {
+                    'hl': 'en',
+                    'gl': 'US',
+                }
+                
+                url = 'https://www.youtube.com/youtubei/v1/search' + '?' + urlencode({'key': searchKey})
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        url,
+                        headers={"User-Agent": userAgent, "Content-Type": "application/json"},
+                        json=request_body,
+                        timeout=self.timeout if self.timeout else 5
+                    )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    contents = getValue(data, contentPath)
+                    fallback_contents = getValue(data, fallbackContentPath)
+                    
+                    search_contents = contents if contents else fallback_contents
+                    video_data = self.__findVideoDataInSearchResults(search_contents, video_id)
+                    
+                    if video_data:
+                        # Extract publishedTime - try multiple paths
+                        published_time = getValue(video_data, ['publishedTimeText', 'simpleText'])
+                        # Also try runs path (some videos use runs instead of simpleText)
+                        if not published_time:
+                            published_time = getValue(video_data, ['publishedTimeText', 'runs', 0, 'text'])
+                        # Try alternative paths in the video data structure
+                        if not published_time:
+                            published_time = getValue(video_data, ['publishedTimeText'])
+                        if not published_time:
+                            # Try to find in videoRenderer or other renderer types
+                            published_time = getValue(video_data, ['videoRenderer', 'publishedTimeText', 'simpleText'])
+                        if not published_time:
+                            published_time = getValue(video_data, ['videoRenderer', 'publishedTimeText', 'runs', 0, 'text'])
+                        if not published_time:
+                            # Try in overlay or other nested structures
+                            published_time = getValue(video_data, ['overlay', 'inlinePlaybackEndpointOverlayRenderer', 'publishedTimeText', 'simpleText'])
+                        if published_time:
+                            result['publishedTime'] = published_time
+                        
+                        # Extract hq720 thumbnail
+                        thumbnails = getValue(video_data, ['thumbnail', 'thumbnails'])
+                        if thumbnails:
+                            best_thumb = self.__getBestHq720FromThumbnails(thumbnails)
+                            if best_thumb:
+                                result['hq720Thumbnail'] = best_thumb
+                        
+                        # If we found publishedTime, we can stop trying other queries
+                        if result['publishedTime']:
+                            break
+            except Exception:
+                continue
+        
+        return result
 
-    async def __getOptimizedHq720UrlAsync(self, video_id: str) -> Union[dict, None]:
-        """Legacy method - now uses unified __getVideoDataFromSearchAsync for better performance."""
-        search_data = await self.__getVideoDataFromSearchAsync(video_id)
-        return search_data.get('hq720Thumbnail')
-
-    def __getPublishedTimeFromSearch(self, video_id: str) -> Optional[str]:
-        """Legacy method - now uses unified __getVideoDataFromSearch for better performance."""
-        search_data = self.__getVideoDataFromSearch(video_id)
-        return search_data.get('publishedTime')
-
-    async def __getPublishedTimeFromSearchAsync(self, video_id: str) -> Optional[str]:
-        """Legacy method - now uses unified __getVideoDataFromSearchAsync for better performance."""
-        search_data = await self.__getVideoDataFromSearchAsync(video_id)
-        return search_data.get('publishedTime')
 
     def __enhanceThumbnails(self, thumbnails: List[dict], video_id: str, search_api_data: Optional[dict] = None) -> List[dict]:
-        """
-        Enhances thumbnails list with standard YouTube thumbnail URLs.
-        
-        Args:
-            thumbnails: Existing thumbnails from API
-            video_id: Video ID
-            search_api_data: Optional search API data (from same call) to avoid duplicate API requests
-        """
         if not thumbnails or not video_id:
             return thumbnails
         
@@ -390,11 +404,11 @@ class VideoCore(RequestCore):
                 if self.__checkThumbnailExists(base_url):
                     enhanced.append(thumb)
         
-        # Use search API data if already fetched in same call, otherwise fetch separately
         if search_api_data and search_api_data.get('hq720Thumbnail'):
             optimized_hq720 = search_api_data['hq720Thumbnail']
         else:
-            optimized_hq720 = self.__getOptimizedHq720Url(video_id)
+            search_data = self.__getVideoDataFromSearch(video_id)
+            optimized_hq720 = search_data.get('hq720Thumbnail')
         
         if optimized_hq720:
             optimized_url = optimized_hq720["url"]
@@ -404,14 +418,6 @@ class VideoCore(RequestCore):
         return enhanced
 
     async def __enhanceThumbnailsAsync(self, thumbnails: List[dict], video_id: str, search_api_data: Optional[dict] = None) -> List[dict]:
-        """
-        Async version: Enhances thumbnails list with standard YouTube thumbnail URLs.
-        
-        Args:
-            thumbnails: Existing thumbnails from API
-            video_id: Video ID
-            search_api_data: Optional search API data (from same call) to avoid duplicate API requests
-        """
         if not thumbnails or not video_id:
             return thumbnails
         
@@ -438,7 +444,8 @@ class VideoCore(RequestCore):
         if search_api_data and search_api_data.get('hq720Thumbnail'):
             optimized_hq720 = search_api_data['hq720Thumbnail']
         else:
-            optimized_hq720 = await self.__getOptimizedHq720UrlAsync(video_id)
+            search_data = await self.__getVideoDataFromSearchAsync(video_id)
+            optimized_hq720 = search_data.get('hq720Thumbnail')
         
         if optimized_hq720:
             optimized_url = optimized_hq720["url"]
@@ -485,11 +492,6 @@ class VideoCore(RequestCore):
                 "isLiveContent": getValue(
                     responseSource, ["videoDetails", "isLiveContent"]
                 ),
-                "publishDate": publish_date,
-                "uploadDate": getValue(
-                    responseSource,
-                    ["microformat", "playerMicroformatRenderer", "uploadDate"],
-                ),
                 "isFamilySafe": getValue(
                     responseSource,
                     ["microformat", "playerMicroformatRenderer", "isFamilySafe"],
@@ -500,25 +502,59 @@ class VideoCore(RequestCore):
                 ),
             }
             
-            component["publishedTime"] = format_published_time(publish_date)
-            if not component["publishedTime"] and component.get("publishDate"):
-                component["publishedTime"] = format_published_time(component["publishDate"])
+            upload_date = getValue(
+                responseSource,
+                ["microformat", "playerMicroformatRenderer", "uploadDate"],
+            )
+            live_broadcast_date = getValue(
+                responseSource,
+                ["videoDetails", "liveBroadcastDetails", "startTimestamp"],
+            )
+            scheduled_start_time = getValue(
+                responseSource,
+                ["videoDetails", "liveBroadcastDetails", "scheduledStartTime"],
+            )
             
-            # Fetch search API data once (for both publishedTime and thumbnails) to avoid duplicate API calls
-            # This is a local variable within this method call, not a persistent cache
+            if not publish_date and upload_date:
+                publish_date = upload_date
+            if not publish_date and live_broadcast_date:
+                publish_date = live_broadcast_date
+            if not publish_date and scheduled_start_time:
+                publish_date = scheduled_start_time
+            
+            component["publishedTime"] = format_published_time(publish_date)
+            if not component["publishedTime"] and upload_date:
+                component["publishedTime"] = format_published_time(upload_date)
+            if not component["publishedTime"] and live_broadcast_date:
+                component["publishedTime"] = format_published_time(live_broadcast_date)
+            
             search_api_data = None
             if component.get("id"):
-                # Only fetch if we need publishedTime or thumbnails enhancement
                 needs_search_data = not component["publishedTime"] or (component.get("thumbnails") and component.get("id"))
                 if needs_search_data:
-                    search_api_data = self.__getVideoDataFromSearch(component["id"])
-                    # Use publishedTime from search API if still None
+                    search_api_data = self.__getVideoDataFromSearch(component["id"], component.get("title"))
                     if not component["publishedTime"] and search_api_data.get("publishedTime"):
                         component["publishedTime"] = search_api_data["publishedTime"]
             
+            if not component["publishedTime"]:
+                if component.get("isLiveContent") or component.get("isLiveNow"):
+                    component["publishedTime"] = "Live"
+            
+            if "publishDate" in component:
+                del component["publishDate"]
+            if "uploadDate" in component:
+                del component["uploadDate"]
+            live_broadcast_details = getValue(
+                responseSource,
+                ["videoDetails", "liveBroadcastDetails"],
+            )
+            is_live_broadcast = live_broadcast_details is not None
+            duration_seconds = component["duration"].get("seconds")
+            is_zero_duration = duration_seconds == 0 or duration_seconds is None
+            
             component["isLiveNow"] = (
-                component["isLiveContent"]
-                and component["duration"].get("seconds") == 0
+                component.get("isLiveContent") is True
+                and (is_zero_duration or is_live_broadcast)
             )
             
             if component["id"]:
@@ -541,14 +577,28 @@ class VideoCore(RequestCore):
                 {"streamingData": getValue(self.responseSource, ["streamingData"])}
             )
         if self.enableHTML:
-            videoComponent["publishDate"] = getValue(
+            # Extract dates from HTML response and format as publishedTime
+            html_publish_date = getValue(
                 self.HTMLresponseSource,
                 ["microformat", "playerMicroformatRenderer", "publishDate"],
             )
-            videoComponent["uploadDate"] = getValue(
+            html_upload_date = getValue(
                 self.HTMLresponseSource,
                 ["microformat", "playerMicroformatRenderer", "uploadDate"],
             )
+            # Format publishedTime from HTML response dates
+            if not videoComponent.get("publishedTime") and html_publish_date:
+                videoComponent["publishedTime"] = format_published_time(html_publish_date)
+            if not videoComponent.get("publishedTime") and html_upload_date:
+                videoComponent["publishedTime"] = format_published_time(html_upload_date)
+        
+        # Remove duplicate date fields - ensure publishDate and uploadDate are never in the output
+        # Keep only publishedTime as requested
+        if "publishDate" in videoComponent:
+            del videoComponent["publishDate"]
+        if "uploadDate" in videoComponent:
+            del videoComponent["uploadDate"]
+        
         self.__videoComponent = videoComponent
 
     async def __getVideoComponentAsync(self, mode: str) -> None:
@@ -589,11 +639,6 @@ class VideoCore(RequestCore):
                 "isLiveContent": getValue(
                     responseSource, ["videoDetails", "isLiveContent"]
                 ),
-                "publishDate": publish_date,
-                "uploadDate": getValue(
-                    responseSource,
-                    ["microformat", "playerMicroformatRenderer", "uploadDate"],
-                ),
                 "isFamilySafe": getValue(
                     responseSource,
                     ["microformat", "playerMicroformatRenderer", "isFamilySafe"],
@@ -604,25 +649,59 @@ class VideoCore(RequestCore):
                 ),
             }
             
-            component["publishedTime"] = format_published_time(publish_date)
-            if not component["publishedTime"] and component.get("publishDate"):
-                component["publishedTime"] = format_published_time(component["publishDate"])
+            upload_date = getValue(
+                responseSource,
+                ["microformat", "playerMicroformatRenderer", "uploadDate"],
+            )
+            live_broadcast_date = getValue(
+                responseSource,
+                ["videoDetails", "liveBroadcastDetails", "startTimestamp"],
+            )
+            scheduled_start_time = getValue(
+                responseSource,
+                ["videoDetails", "liveBroadcastDetails", "scheduledStartTime"],
+            )
             
-            # Fetch search API data once (for both publishedTime and thumbnails) to avoid duplicate API calls
-            # This is a local variable within this method call, not a persistent cache
+            if not publish_date and upload_date:
+                publish_date = upload_date
+            if not publish_date and live_broadcast_date:
+                publish_date = live_broadcast_date
+            if not publish_date and scheduled_start_time:
+                publish_date = scheduled_start_time
+            
+            component["publishedTime"] = format_published_time(publish_date)
+            if not component["publishedTime"] and upload_date:
+                component["publishedTime"] = format_published_time(upload_date)
+            if not component["publishedTime"] and live_broadcast_date:
+                component["publishedTime"] = format_published_time(live_broadcast_date)
+            
             search_api_data = None
             if component.get("id"):
-                # Only fetch if we need publishedTime or thumbnails enhancement
                 needs_search_data = not component["publishedTime"] or (component.get("thumbnails") and component.get("id"))
                 if needs_search_data:
-                    search_api_data = await self.__getVideoDataFromSearchAsync(component["id"])
-                    # Use publishedTime from search API if still None
+                    search_api_data = await self.__getVideoDataFromSearchAsync(component["id"], component.get("title"))
                     if not component["publishedTime"] and search_api_data.get("publishedTime"):
                         component["publishedTime"] = search_api_data["publishedTime"]
             
+            if not component["publishedTime"]:
+                if component.get("isLiveContent") or component.get("isLiveNow"):
+                    component["publishedTime"] = "Live"
+            
+            if "publishDate" in component:
+                del component["publishDate"]
+            if "uploadDate" in component:
+                del component["uploadDate"]
+            live_broadcast_details = getValue(
+                responseSource,
+                ["videoDetails", "liveBroadcastDetails"],
+            )
+            is_live_broadcast = live_broadcast_details is not None
+            duration_seconds = component["duration"].get("seconds")
+            is_zero_duration = duration_seconds == 0 or duration_seconds is None
+            
             component["isLiveNow"] = (
-                component["isLiveContent"]
-                and component["duration"].get("seconds") == 0
+                component.get("isLiveContent") is True
+                and (is_zero_duration or is_live_broadcast)
             )
             
             if component["id"]:
@@ -645,12 +724,26 @@ class VideoCore(RequestCore):
                 {"streamingData": getValue(self.responseSource, ["streamingData"])}
             )
         if self.enableHTML:
-            videoComponent["publishDate"] = getValue(
+            # Extract dates from HTML response and format as publishedTime
+            html_publish_date = getValue(
                 self.HTMLresponseSource,
                 ["microformat", "playerMicroformatRenderer", "publishDate"],
             )
-            videoComponent["uploadDate"] = getValue(
+            html_upload_date = getValue(
                 self.HTMLresponseSource,
                 ["microformat", "playerMicroformatRenderer", "uploadDate"],
             )
+            # Format publishedTime from HTML response dates
+            if not videoComponent.get("publishedTime") and html_publish_date:
+                videoComponent["publishedTime"] = format_published_time(html_publish_date)
+            if not videoComponent.get("publishedTime") and html_upload_date:
+                videoComponent["publishedTime"] = format_published_time(html_upload_date)
+        
+        # Remove duplicate date fields - ensure publishDate and uploadDate are never in the output
+        # Keep only publishedTime as requested
+        if "publishDate" in videoComponent:
+            del videoComponent["publishDate"]
+        if "uploadDate" in videoComponent:
+            del videoComponent["uploadDate"]
+        
         self.__videoComponent = videoComponent
