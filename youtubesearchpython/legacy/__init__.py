@@ -1,6 +1,6 @@
 from typing import List, Union
 import json
-from youtubesearchpython.handlers.componenthandler import ComponentHandler
+from youtubesearchpython.core.componenthandler import ComponentHandler
 from youtubesearchpython.handlers.requesthandler import RequestHandler
 from youtubesearchpython.core.constants import *
 

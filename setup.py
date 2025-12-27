@@ -1,15 +1,15 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="youtube-search-python",
-    version="1.6.7",  # updated with async methods, WEB client fix, and improved error handling
-    author="CertifiedCoders (forked from Hitesh Kumar Saini)",
+    version="1.7.0",
+    author="CertifiedCoders",
     license='MIT',
     author_email="rajnishmishraaa1@gmail.com",
-    description="Search for YouTube content without YouTube Data API v3. Maintained fork with modern Python support.",
+    description="Search YouTube videos, channels, and playlists without API keys. Actively maintained fork with sync and async support.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/CertifiedCoders/youtube-search-python",
@@ -27,6 +27,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

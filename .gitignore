@@ -1,7 +1,7 @@
 # vscode
 
 .vscode
-
+.cursor
 # python
 
 __pycache__
@@ -9,8 +9,6 @@ dist
 
 # testing
 
-test.py
-test2.py
-test_video_fix.py
+test2/
 *.json
 *.html

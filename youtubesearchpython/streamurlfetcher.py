@@ -27,7 +27,6 @@ class StreamURLFetcher(StreamURLFetcherCore):
     '''
     def __init__(self):
         super().__init__()
-        #self._getJS()
 
     def get(self, videoFormats: dict, itag: int) -> Union[str, None]:
         '''Gets direct stream URL for a YouTube video fetched using `Video.get` or `Video.getFormats`.

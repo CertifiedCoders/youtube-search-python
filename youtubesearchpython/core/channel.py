@@ -43,15 +43,15 @@ class ChannelCore(RequestCore):
         thumbnails = []
         try:
             thumbnails.extend(getValue(response, ["header", "c4TabbedHeaderRenderer", "avatar", "thumbnails"]))
-        except:
+        except (KeyError, AttributeError, TypeError):
             pass
         try:
             thumbnails.extend(getValue(response, ["metadata", "channelMetadataRenderer", "avatar", "thumbnails"]))
-        except:
+        except (KeyError, AttributeError, TypeError):
             pass
         try:
             thumbnails.extend(getValue(response, ["microformat", "microformatDataRenderer", "thumbnail", "thumbnails"]))
-        except:
+        except (KeyError, AttributeError, TypeError):
             pass
         
         tabData: dict = {}

@@ -1,3 +1,4 @@
+from typing import Optional
 from youtubesearchpython.core.constants import *
 from youtubesearchpython.core.search import SearchCore
 from youtubesearchpython.core.channelsearch import ChannelSearchCore
@@ -11,6 +12,7 @@ class Search(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -68,7 +70,7 @@ class Search(SearchCore):
             ]
         }
     '''
-    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: int = None):
+    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: Optional[int] = None):
         self.searchMode = (True, True, True)
         super().__init__(query, limit, language, region, None, timeout)
         self.sync_create()
@@ -85,6 +87,7 @@ class VideosSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -142,7 +145,7 @@ class VideosSearch(SearchCore):
             ]
         }
     '''
-    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: int = None):
+    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: Optional[int] = None):
         self.searchMode = (True, False, False)
         super().__init__(query, limit, language, region, SearchMode.videos, timeout)
         self.sync_create()
@@ -160,6 +163,7 @@ class ChannelsSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -192,7 +196,7 @@ class ChannelsSearch(SearchCore):
             ]
         }
     '''
-    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: int = None):
+    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: Optional[int] = None):
         self.searchMode = (False, True, False)
         super().__init__(query, limit, language, region, SearchMode.channels, timeout)
         self.sync_create()
@@ -210,6 +214,7 @@ class PlaylistsSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -255,7 +260,7 @@ class PlaylistsSearch(SearchCore):
             ]
         }
     '''
-    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: int = None):
+    def __init__(self, query: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: Optional[int] = None):
         self.searchMode = (False, False, True)
         super().__init__(query, limit, language, region, SearchMode.playlists, timeout)
         self.sync_create()
@@ -273,6 +278,7 @@ class ChannelSearch(ChannelSearchCore):
         browseId (str): Channel ID
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
 
     Examples:
         Calling `result` method gives the search result.
@@ -337,7 +343,7 @@ class ChannelSearch(ChannelSearchCore):
         }
     '''
 
-    def __init__(self, query: str, browseId: str, language: str = 'en', region: str = 'US', searchPreferences: str = "EgZzZWFyY2g%3D", timeout: int = None):
+    def __init__(self, query: str, browseId: str, language: str = 'en', region: str = 'US', searchPreferences: str = "EgZzZWFyY2g%3D", timeout: Optional[int] = None):
         super().__init__(query, language, region, searchPreferences, browseId, timeout)
         self.sync_create()
 
@@ -361,6 +367,7 @@ class CustomSearch(SearchCore):
         limit (int, optional): Sets limit to the number of results. Defaults to 20.
         language (str, optional): Sets the result language. Defaults to 'en'.
         region (str, optional): Sets the result region. Defaults to 'US'.
+        timeout (int, optional): Sets the request timeout in seconds. Defaults to 10 seconds. Pass None to use default.
     
     Examples:
         Calling `result` method gives the search result.
@@ -418,11 +425,11 @@ class CustomSearch(SearchCore):
             ]
         }
     '''
-    def __init__(self, query: str, searchPreferences: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: int = None):
+    def __init__(self, query: str, searchPreferences: str, limit: int = 20, language: str = 'en', region: str = 'US', timeout: Optional[int] = None):
         self.searchMode = (True, True, True)
         super().__init__(query, limit, language, region, searchPreferences, timeout)
         self.sync_create()
         self._getComponents(*self.searchMode)
     
-    def next(self):
-        self._next()
+    def next(self) -> bool:
+        return self._next()

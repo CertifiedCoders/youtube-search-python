@@ -1,25 +1,27 @@
 import copy
 import json
-from typing import Union
+from typing import Union, Optional
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 
 import httpx
 
 from youtubesearchpython.core.constants import *
-from youtubesearchpython.handlers.componenthandler import ComponentHandler
+from youtubesearchpython.core.componenthandler import ComponentHandler
+from youtubesearchpython.core.exceptions import YouTubeRequestError, YouTubeParseError
 
 
 class HashtagCore(ComponentHandler):
     response = None
     resultComponents = []
 
-    def __init__(self, hashtag: str, limit: int, language: str, region: str, timeout: int):
+    def __init__(self, hashtag: str, limit: int, language: str, region: str, timeout: Optional[int]):
         self.hashtag = hashtag
         self.limit = limit
         self.language = language
         self.region = region
-        self.timeout = timeout
+        self.timeout = timeout if timeout is not None else 10
         self.continuationKey = None
         self.params = None
 
@@ -75,8 +77,10 @@ class HashtagCore(ComponentHandler):
         )
         try:
             response = urlopen(request, timeout=self.timeout).read().decode('utf_8')
-        except:
-            raise Exception('ERROR: Could not make request.')
+        except (URLError, HTTPError, TimeoutError) as e:
+            raise YouTubeRequestError(f'Failed to make request: {str(e)}')
+        except Exception as e:
+            raise YouTubeRequestError(f'Unexpected error making request: {str(e)}')
         content = self._getValue(json.loads(response), contentPath)
         for item in self._getValue(content, [0, 'itemSectionRenderer', 'contents']):
             if hashtagElementKey in item.keys():
@@ -104,8 +108,12 @@ class HashtagCore(ComponentHandler):
                     timeout = self.timeout
                 )
                 response = response.json()
-        except:
-            raise Exception('ERROR: Could not make request.')
+        except httpx.RequestError as e:
+            raise YouTubeRequestError(f'Failed to make request: {str(e)}')
+        except httpx.HTTPStatusError as e:
+            raise YouTubeRequestError(f'HTTP error {e.response.status_code}: {str(e)}')
+        except Exception as e:
+            raise YouTubeRequestError(f'Unexpected error making request: {str(e)}')
         content = self._getValue(response, contentPath)
         for item in self._getValue(content, [0, 'itemSectionRenderer', 'contents']):
             if hashtagElementKey in item.keys():
@@ -138,8 +146,10 @@ class HashtagCore(ComponentHandler):
         )
         try:
             self.response = urlopen(request, timeout=self.timeout).read().decode('utf_8')
-        except:
-            raise Exception('ERROR: Could not make request.')
+        except (URLError, HTTPError, TimeoutError) as e:
+            raise YouTubeRequestError(f'Failed to make request: {str(e)}')
+        except Exception as e:
+            raise YouTubeRequestError(f'Unexpected error making request: {str(e)}')
 
     async def _asyncMakeRequest(self) -> None:
         if self.params == None:
@@ -167,8 +177,12 @@ class HashtagCore(ComponentHandler):
                     timeout = self.timeout
                 )
                 self.response = response.content
-        except:
-            raise Exception('ERROR: Could not make request.')
+        except httpx.RequestError as e:
+            raise YouTubeRequestError(f'Failed to make request: {str(e)}')
+        except httpx.HTTPStatusError as e:
+            raise YouTubeRequestError(f'HTTP error {e.response.status_code}: {str(e)}')
+        except Exception as e:
+            raise YouTubeRequestError(f'Unexpected error making request: {str(e)}')
 
     def _getComponents(self) -> None:
         if self.response == None:
@@ -189,5 +203,9 @@ class HashtagCore(ComponentHandler):
                     if len(self.resultComponents) >= self.limit:
                         break
                 self.continuationKey = self._getValue(responseSource[-1], continuationKeyPath)
-        except:
-            raise Exception('ERROR: Could not parse YouTube response.')
+        except json.JSONDecodeError as e:
+            raise YouTubeParseError(f'Failed to parse JSON response: {str(e)}')
+        except KeyError as e:
+            raise YouTubeParseError(f'Missing expected key in response: {str(e)}')
+        except Exception as e:
+            raise YouTubeParseError(f'Failed to parse YouTube response: {str(e)}')
