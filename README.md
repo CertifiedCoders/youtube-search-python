@@ -223,20 +223,21 @@ Thanks to everyone contributing to this library, including those not mentioned h
 
 Contributors are listed in no particular order. We appreciate all contributions, reports, and feedback.
 
----
+##
 
 ## 📝 Recent Updates
 
-**Version 1.6.10** includes:
-- Renamed async module from `__future__` to `aio` for cleaner imports
-- ANDROID client as default for better compatibility
-- Enhanced thumbnail handling and optimization
-- Improved error handling and stream URL fetching
-- Updated client versions and URL cleaning
+**Version 1.7.0** includes:
 
-For full changelog, see the [repository commits](https://github.com/CertifiedCoders/youtube-search-python/commits/dev).
+- Renamed async module from `__future__` to `aio` for cleaner, clearer, and more intuitive async imports
+- Robust YouTube URL cleaning and video ID extraction supporting watch, shorts, live, youtu.be, and playlist formats
+- Centralized utility formatters for view counts, durations, publish time, and channel metadata with consistent outputs
+- Major refactors in video data retrieval to reduce duplication and unify sync/async logic for better performance
+- Improved client architecture with ANDROID as the default and stronger MWEB fallback handling
+- Enhanced stream URL fetching with duplicate format prevention and improved compatibility with YouTube API changes
+- Cleaner project structure and documentation with consolidated examples and updated installation/upgrade guidance
 
----
+##
 
 ## 📄 License
 
@@ -245,7 +246,7 @@ MIT License
 Copyright (c) 2021 [Hitesh Kumar Saini](https://github.com/alexmercerind)  
 Copyright (c) 2022-2024 [CertifiedCoders](https://github.com/CertifiedCoders) (Fork maintainer)
 
----
+##
 
 ## 🔗 Links
 
