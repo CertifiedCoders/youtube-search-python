@@ -539,6 +539,52 @@ class Video:
         vc.sync_create()
         return vc.result
 
+    @staticmethod
+    async def get(videoLink: str, mode: int = ResultMode.dict, timeout: int = None, get_upload_date: bool = False) -> Union[dict, str, None]:
+        '''Async version: Fetches information and formats for the given video link or ID.
+        Returns None if video is unavailable.
+
+        Args:
+            videoLink (str): link or ID of the video on YouTube.
+            mode (int, optional): Sets the type of result. Defaults to ResultMode.dict.
+            timeout (int, optional): Timeout for the request. Defaults to None.
+            get_upload_date (bool, optional): Whether to get upload date. Defaults to False.
+        '''
+        vc = VideoCore(videoLink, None, mode, timeout, get_upload_date)
+        if get_upload_date:
+            await vc.async_html_create()
+        await vc.async_create()
+        return vc.result
+
+    @staticmethod
+    async def getInfo(videoLink: str, mode: int = ResultMode.dict, timeout: int = None) -> Union[dict, str, None]:
+        '''Async version: Fetches only information for the given video link or ID.
+        Returns None if video is unavailable.
+
+        Args:
+            videoLink (str): link or ID of the video on YouTube.
+            mode (int, optional): Sets the type of result. Defaults to ResultMode.dict.
+            timeout (int, optional): Timeout for the request. Defaults to None.
+        '''
+        vc = VideoCore(videoLink, "getInfo", mode, timeout, True)
+        await vc.async_html_create()
+        vc.post_request_only_html_processing()
+        return vc.result
+
+    @staticmethod
+    async def getFormats(videoLink: str, mode: int = ResultMode.dict, timeout: int = None) -> Union[dict, str, None]:
+        '''Async version: Fetches formats for the given video link or ID.
+        Returns None if video is unavailable.
+
+        Args:
+            videoLink (str): link or ID of the video on YouTube.
+            mode (int, optional): Sets the type of result. Defaults to ResultMode.dict.
+            timeout (int, optional): Timeout for the request. Defaults to None.
+        '''
+        vc = VideoCore(videoLink, "getFormats", mode, timeout, False)
+        await vc.async_create()
+        return vc.result
+
 
 class Playlist:
     '''Fetches information and videos for the given playlist link.
