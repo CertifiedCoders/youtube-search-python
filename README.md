@@ -244,7 +244,7 @@ Contributors are listed in no particular order. We appreciate all contributions,
 MIT License
 
 Copyright (c) 2021 [Hitesh Kumar Saini](https://github.com/alexmercerind)  
-Copyright (c) 2022-2024 [CertifiedCoders](https://github.com/CertifiedCoders) (Fork maintainer)
+Copyright (c) 2022-2025 [CertifiedCoders](https://github.com/CertifiedCoders) (Fork maintainer)
 
 ##
 
